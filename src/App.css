@@ -431,13 +431,81 @@
 }
 
 .dashboard-card-special .dashboard-special-value {
-  margin: 0;
+  margin: 0 0 10px;
   font-family: var(--font-cyber);
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--neon-cyan);
   text-shadow: 0 0 12px var(--neon-cyan-glow);
   letter-spacing: -0.02em;
+}
+
+.special-detail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.special-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.special-detail-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.special-detail-name {
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.special-detail-count {
+  color: var(--text-muted);
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: var(--font-cyber);
+  font-size: 0.8rem;
+}
+
+.special-detail-goal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.special-goal-track {
+  width: 40px;
+  height: 4px;
+  background: var(--bg-hover);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.special-goal-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width var(--transition-slow);
+}
+
+.special-goal-text {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  min-width: 32px;
+}
+
+.special-goal-text.done {
+  color: var(--neon-green);
+  font-weight: 600;
 }
 
 /* ── Progress Block (used elsewhere) ── */

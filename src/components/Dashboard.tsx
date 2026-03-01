@@ -259,21 +259,43 @@ export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckI
         <>
           <h3 className="dashboard-section-title">特殊习惯（执行次数）</h3>
           <div className="dashboard-grid dashboard-grid-special">
-            <div className="dashboard-card dashboard-card-special">
-              <h3>本周</h3>
-              <p className="dashboard-card-date">{weekRangeStr}</p>
-              <p className="dashboard-special-value">{specialWeek.totalCount} 次</p>
-            </div>
-            <div className="dashboard-card dashboard-card-special">
-              <h3>本月</h3>
-              <p className="dashboard-card-date">{monthRangeStr}</p>
-              <p className="dashboard-special-value">{specialMonth.totalCount} 次</p>
-            </div>
-            <div className="dashboard-card dashboard-card-special">
-              <h3>本年</h3>
-              <p className="dashboard-card-date">{yearRangeStr}</p>
-              <p className="dashboard-special-value">{specialYear.totalCount} 次</p>
-            </div>
+            {([
+              { title: '本周', rangeStr: weekRangeStr, stats: specialWeek, goalKey: 'goalPerWeek' as const },
+              { title: '本月', rangeStr: monthRangeStr, stats: specialMonth, goalKey: 'goalPerMonth' as const },
+              { title: '本年', rangeStr: yearRangeStr, stats: specialYear, goalKey: null },
+            ] as const).map(({ title, rangeStr, stats, goalKey }) => (
+              <div key={title} className="dashboard-card dashboard-card-special">
+                <div className="dcard-head">
+                  <h3>{title}</h3>
+                  <span className="dcard-date">{rangeStr}</span>
+                </div>
+                <p className="dashboard-special-value">共 {stats.totalCount} 次</p>
+                <ul className="special-detail-list">
+                  {stats.byHabit.map(item => {
+                    const habit = habits.find(h => h.id === item.habitId)
+                    const goal = goalKey && habit ? (habit[goalKey] ?? 0) : 0
+                    const pct = goal > 0 ? Math.min(100, Math.round((item.count / goal) * 100)) : 0
+                    return (
+                      <li key={item.habitId} className="special-detail-item">
+                        <span className="special-detail-dot" style={{ background: item.color }} />
+                        <span className="special-detail-name" style={{ color: item.color }}>{item.name}</span>
+                        <span className="special-detail-count">{item.count} 次</span>
+                        {goal > 0 && (
+                          <span className="special-detail-goal">
+                            <span className="special-goal-track">
+                              <span className="special-goal-fill" style={{ width: `${pct}%`, background: item.color }} />
+                            </span>
+                            <span className={`special-goal-text ${pct >= 100 ? 'done' : ''}`}>
+                              {pct >= 100 ? '达标' : `${item.count}/${goal}`}
+                            </span>
+                          </span>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            ))}
           </div>
         </>
       )}
