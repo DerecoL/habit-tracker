@@ -16,7 +16,8 @@ export function ProgressRing({
 }: ProgressRingProps) {
   const r = (size - stroke) / 2
   const circ = 2 * Math.PI * r
-  const offset = circ - (circ * Math.min(100, percent)) / 100
+  const clamped = Math.max(0, Math.min(100, percent))
+  const offset = circ - (circ * clamped) / 100
 
   return (
     <div className="progress-ring" style={{ width: size, height: size }}>

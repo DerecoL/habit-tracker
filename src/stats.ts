@@ -154,7 +154,7 @@ export function getSpecialCountInRange(
   dates: string[]
 ): number {
   const set = new Set(dates)
-  return checkIns.filter(c => c.habitId === habitId && set.has(c.date)).length
+  return checkIns.filter(c => c.habitId === habitId && set.has(c.date) && c.status !== 'skip').length
 }
 
 export interface SpecialCountItem {
@@ -228,8 +228,8 @@ export function getTrendSeriesConfig(
     return [{ dataKey: 'overall', name: '整体完成率', color: '#38bdf8' }]
   }
   if (mode === 'byType') {
-    const basic = habits.filter(h => h.type === 'basic')
-    const advanced = habits.filter(h => h.type === 'advanced')
+    const basic = basicHabits(habits)
+    const advanced = advancedHabits(habits)
     const items: TrendSeriesItem[] = []
     if (basic.length > 0) items.push({ dataKey: 'basic', name: '基础习惯', color: '#10b981' })
     if (advanced.length > 0) items.push({ dataKey: 'advanced', name: '进阶习惯', color: '#8b5cf6' })
@@ -266,12 +266,12 @@ export function getTrendDataMulti(
         const stat = getDayStats(habits, checkIns, date)
         point.overall = stat.total > 0 ? stat.percent : 0
       } else if (s.dataKey === 'basic') {
-        const basic = habits.filter(h => h.type === 'basic')
+        const basic = basicHabits(habits)
         const total = basic.length
         const completed = total === 0 ? 0 : basic.filter(h => isCheckedInOn(h.id, checkIns, date)).length
         point.basic = total > 0 ? Math.round((completed / total) * 100) : 0
       } else if (s.dataKey === 'advanced') {
-        const advanced = habits.filter(h => h.type === 'advanced')
+        const advanced = advancedHabits(habits)
         const total = advanced.length
         const completed = total === 0 ? 0 : advanced.filter(h => isCheckedInOn(h.id, checkIns, date)).length
         point.advanced = total > 0 ? Math.round((completed / total) * 100) : 0
@@ -338,12 +338,14 @@ export function getOverallStreak(habits: Habit[], checkIns: CheckIn[]): number {
  * 按习惯统计周期完成情况（仅用于每日类习惯：完成天数/总天数）
  */
 export function getHabitPeriodStats(
-  habitId: string,
+  habitOrId: string | Habit,
   checkIns: CheckIn[],
   dates: string[]
 ): PeriodStats {
-  const total = dates.length
+  const habitId = typeof habitOrId === 'string' ? habitOrId : habitOrId.id
+  const dueDates = typeof habitOrId === 'string' ? dates : dates.filter(d => isHabitDueOn(habitOrId, d))
+  const total = dueDates.length
   if (total === 0) return { total: 0, completed: 0, percent: 0 }
-  const completed = completedDatesForHabitInRange(habitId, checkIns, dates)
+  const completed = completedDatesForHabitInRange(habitId, checkIns, dueDates)
   return { total, completed, percent: Math.round((completed / total) * 100) }
 }

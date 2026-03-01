@@ -47,10 +47,10 @@ export function useFreezes() {
 
   const useFreeze = useCallback((date: string) => {
     setFreezes(prev => {
-      if (prev.remaining <= 0) return prev
+      if (prev.remaining <= 0 || prev.usedDates.includes(date)) return prev
       return {
         remaining: prev.remaining - 1,
-        usedDates: prev.usedDates.includes(date) ? prev.usedDates : [...prev.usedDates, date],
+        usedDates: [...prev.usedDates, date],
       }
     })
   }, [])

@@ -100,15 +100,25 @@ export default function App() {
   const { xp, addXP } = useXP()
   const { unlockedIds, checkAndUnlock } = useBadges()
   const { rewards, addReward, redeemReward: rawRedeemReward, removeReward } = useRewards()
-  const { freezes } = useFreezes()
+  const { freezes, resetMonthly: resetFreezes } = useFreezes()
+
+  useEffect(() => {
+    const lastReset = localStorage.getItem('habit-tracker-freeze-month')
+    const currentMonth = new Date().toISOString().slice(0, 7)
+    if (lastReset && lastReset !== currentMonth) {
+      resetFreezes()
+    }
+    localStorage.setItem('habit-tracker-freeze-month', currentMonth)
+  }, [resetFreezes])
 
   // Update badges whenever relevant data changes
   useEffect(() => {
     const active = activeHabits(habits)
     const totalCheckins = checkIns.filter(c => !c.status || c.status === 'done').length
     const longestStreak = getOverallStreak(habits, checkIns)
-    const totalDays = habits.length > 0
-      ? Math.ceil((Date.now() - Math.min(...habits.map(h => new Date(h.createdAt).getTime()))) / 86400000)
+    const createdTimes = habits.map(h => new Date(h.createdAt).getTime()).filter(t => !isNaN(t))
+    const totalDays = createdTimes.length > 0
+      ? Math.max(1, Math.ceil((Date.now() - Math.min(...createdTimes)) / 86400000))
       : 0
     checkAndUnlock({ totalCheckins, longestStreak, totalDays, habits: active.length })
   }, [habits, checkIns, checkAndUnlock])
@@ -237,7 +247,7 @@ export default function App() {
               />
               <XPBar totalXp={xp.total} />
               <BadgeWall unlockedIds={unlockedIds} />
-              <RewardManager rewards={rewards} xpBalance={xp.total} addReward={addReward} redeemReward={(id: string) => { const r = rewards.find(x => x.id === id); if (r && xp.total >= r.cost) { addXP(-r.cost); rawRedeemReward(id) } }} removeReward={removeReward} />
+              <RewardManager rewards={rewards} xpBalance={xp.total} addReward={addReward} redeemReward={(id: string) => { const r = rewards.find(x => x.id === id); if (r && !r.redeemed && xp.total >= r.cost) { addXP(-r.cost); rawRedeemReward(id) } }} removeReward={removeReward} />
               <ReminderSettings />
               <DataManager onImported={refreshAll} habits={habits} checkIns={checkIns} />
             </>

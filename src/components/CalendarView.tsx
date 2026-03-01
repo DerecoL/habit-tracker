@@ -12,7 +12,7 @@ const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日']
 
 export function CalendarView({ habits, checkIns }: CalendarViewProps) {
   const [month, setMonth] = useState(() => new Date())
-  const todayStr = useMemo(() => dateStr(new Date()), [])
+  const todayStr = useMemo(() => dateStr(new Date()), [month])
 
   const { grid, completedHabitsByDay, fullAttendanceDays } = useMemo(() => {
     const { start, end } = getMonthRange(month)

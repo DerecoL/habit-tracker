@@ -37,7 +37,7 @@ export function useXP() {
   }, [xp, syncToCloud])
 
   const addXP = useCallback((amount: number) => {
-    setXp(prev => ({ total: prev.total + amount }))
+    setXp(prev => ({ total: Math.max(0, prev.total + amount) }))
   }, [])
 
   const refresh = useCallback(() => {

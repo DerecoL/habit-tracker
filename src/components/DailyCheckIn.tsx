@@ -15,7 +15,7 @@ function PeriodTable({ title, dateRange: rangeStr, stat, habits, checkIns, dates
       <p className="period-summary">{stat.completed}/{stat.total} · {stat.percent}%</p>
       <ul className="habit-period-list">
         {habits.map(h => {
-          const s = getHabitPeriodStats(h.id, checkIns, dates)
+          const s = getHabitPeriodStats(h, checkIns, dates)
           return (
             <li key={h.id} className="habit-period-row">
               <span className="habit-period-name" style={{ color: h.color }}>{h.icon ? `${h.icon} ` : ''}{h.name}</span>

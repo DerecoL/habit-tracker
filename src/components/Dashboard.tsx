@@ -19,6 +19,7 @@ import { todayStr } from '../dateUtils'
 import { dateRange, getWeekRange, getMonthRange, getYearRange } from '../dateUtils'
 import { formatNaturalShort, formatWeekday, formatDateRange } from '../dateUtils'
 import type { Habit, CheckIn } from '../types'
+import { isHabitDueOn } from '../types'
 import { MoodTrendChart } from './MoodTrendChart'
 import { HeatMap } from './HeatMap'
 import { InsightCards } from './InsightCards'
@@ -232,7 +233,7 @@ export function Dashboard({ habits: rawHabits, checkIns: rawCheckIns, getMood, i
               </div>
               {dailyCount > 0 && (
                 <div className="quick-checkin-bar">
-                  {dailyHabits(habits).map(h => (
+                  {dailyHabits(habits).filter(h => isHabitDueOn(h, today)).map(h => (
                     <button
                       key={h.id}
                       type="button"

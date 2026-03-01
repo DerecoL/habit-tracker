@@ -88,7 +88,7 @@ export function useHabits() {
 
   const setCheckInNote = useCallback((habitId: string, date: string, note: string) => {
     setCheckIns(prev => {
-      const idx = prev.findIndex(c => c.habitId === habitId && c.date === date && c.status !== 'skip')
+      const idx = prev.findIndex(c => c.habitId === habitId && c.date === date)
       if (idx < 0) return prev
       const next = [...prev]
       next[idx] = { ...next[idx], note }
