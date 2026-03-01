@@ -128,6 +128,19 @@ export function Dashboard({ habits: rawHabits, checkIns: rawCheckIns, getMood, i
     const isFullAttendance = basicDay.total > 0 && basicDay.completed === basicDay.total
     const isPerfect = isPerfectDay(habits, checkIns, today)
 
+    const countDays = (dates: string[]) => {
+      let full = 0, perfect = 0
+      for (const d of dates) {
+        const bs = getBasicDayStats(habits, checkIns, d)
+        if (bs.total > 0 && bs.completed === bs.total) full++
+        if (isPerfectDay(habits, checkIns, d)) perfect++
+      }
+      return { full, perfect }
+    }
+    const weekDayCounts = countDays(weekDates)
+    const monthDayCounts = countDays(monthDates)
+    const yearDayCounts = countDays(yearDates)
+
     return {
       day, basicDay, week, month, year,
       dayBasic, dayAdv,
@@ -137,6 +150,7 @@ export function Dashboard({ habits: rawHabits, checkIns: rawCheckIns, getMood, i
       weekRangeStr, monthRangeStr, yearRangeStr,
       basicStreaks, advStreaks,
       isFullAttendance, isPerfect,
+      weekDayCounts, monthDayCounts, yearDayCounts,
     }
   }, [habits, checkIns, today])
 
@@ -273,6 +287,10 @@ export function Dashboard({ habits: rawHabits, checkIns: rawCheckIns, getMood, i
                 <TypeBar label="基础" stat={weekBasic} variant="basic" />
                 <TypeBar label="进阶" stat={weekAdv} variant="advanced" />
               </div>
+              <div className="dcard-day-counts">
+                <span className="dcard-count-chip dcard-count-full">✓ 全勤 {weekDayCounts.full}天</span>
+                <span className="dcard-count-chip dcard-count-perfect">★ 完美 {weekDayCounts.perfect}天</span>
+              </div>
             </div>
 
             {/* 本月 */}
@@ -289,6 +307,10 @@ export function Dashboard({ habits: rawHabits, checkIns: rawCheckIns, getMood, i
                 <TypeBar label="基础" stat={monthBasic} variant="basic" />
                 <TypeBar label="进阶" stat={monthAdv} variant="advanced" />
               </div>
+              <div className="dcard-day-counts">
+                <span className="dcard-count-chip dcard-count-full">✓ 全勤 {monthDayCounts.full}天</span>
+                <span className="dcard-count-chip dcard-count-perfect">★ 完美 {monthDayCounts.perfect}天</span>
+              </div>
             </div>
 
             {/* 本年 */}
@@ -304,6 +326,10 @@ export function Dashboard({ habits: rawHabits, checkIns: rawCheckIns, getMood, i
               <div className="dcard-types">
                 <TypeBar label="基础" stat={yearBasic} variant="basic" />
                 <TypeBar label="进阶" stat={yearAdv} variant="advanced" />
+              </div>
+              <div className="dcard-day-counts">
+                <span className="dcard-count-chip dcard-count-full">✓ 全勤 {yearDayCounts.full}天</span>
+                <span className="dcard-count-chip dcard-count-perfect">★ 完美 {yearDayCounts.perfect}天</span>
               </div>
             </div>
           </div>

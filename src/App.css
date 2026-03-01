@@ -2241,6 +2241,31 @@
   --glow-color: rgba(255, 215, 0, 0.35);
 }
 
+.dcard-day-counts {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.dcard-count-chip {
+  font-size: 0.72rem;
+  font-family: var(--font-cyber);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.5px;
+}
+.dcard-count-full {
+  color: var(--neon-green);
+  background: rgba(57, 255, 20, 0.06);
+  border: 1px solid rgba(57, 255, 20, 0.15);
+}
+.dcard-count-perfect {
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.06);
+  border: 1px solid rgba(255, 215, 0, 0.18);
+}
+
 /* ═══ Empty State ═══ */
 .empty-state {
   text-align: center;
@@ -3525,6 +3550,8 @@
 [data-theme="light"] .calendar-view .cal-day-full { background: rgba(0,120,200,0.08); box-shadow: none; }
 [data-theme="light"] .calendar-view .cal-day-perfect { background: rgba(255, 180, 0, 0.1); border-color: rgba(255, 180, 0, 0.3); box-shadow: none; }
 [data-theme="light"] .dcard-perfect { color: #d4900a; text-shadow: none; background: rgba(255, 180, 0, 0.08); border-color: rgba(255, 180, 0, 0.25); }
+[data-theme="light"] .dcard-count-full { color: #16a34a; background: rgba(22, 163, 74, 0.06); border-color: rgba(22, 163, 74, 0.18); }
+[data-theme="light"] .dcard-count-perfect { color: #d4900a; background: rgba(255, 180, 0, 0.06); border-color: rgba(255, 180, 0, 0.18); }
 [data-theme="light"] .calendar-view .cal-day-today { border-color: #0077cc; color: #0077cc; }
 [data-theme="light"] .dashboard-hero { background: linear-gradient(135deg, rgba(0,136,204,0.03) 0%, rgba(139,47,198,0.02) 50%, rgba(212,37,120,0.02) 100%); }
 [data-theme="light"] .hero-stat-value { text-shadow: none; color: #1a1a2e; }
