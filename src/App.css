@@ -1880,91 +1880,101 @@
   margin-top: 24px;
 }
 
-.heatmap-grid-wrap {
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-
-.heatmap-grid {
-  display: grid;
-  grid-template-rows: repeat(7, 1fr);
-  grid-auto-flow: column;
-  grid-auto-columns: 14px;
-  gap: 3px;
-}
-
-.heatmap-cell {
-  width: 14px;
-  height: 14px;
-  border-radius: 2px;
-  background: var(--cell-bg, rgba(0, 240, 255, 0.04));
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  position: relative;
-  cursor: default;
-}
-
-.heatmap-cell:hover {
-  transform: scale(1.6);
-  z-index: 2;
-  box-shadow: 0 0 10px var(--cell-glow, transparent);
-}
-
-.heatmap-cell[data-today="true"] {
-  outline: 1.5px solid var(--neon-cyan);
-  outline-offset: 1px;
-}
-
-.heatmap-tooltip {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 4px 10px;
-  font-size: 0.72rem;
-  color: var(--text);
-  white-space: nowrap;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.heatmap-cell:hover .heatmap-tooltip {
-  display: block;
-}
-
-.heatmap-months {
+/* ── Month labels row ── */
+.heatmap-months-row {
   display: flex;
-  padding-left: 0;
-  margin-top: 4px;
+  align-items: flex-end;
+  margin-bottom: 4px;
+}
+
+.heatmap-weekday-spacer {
+  flex-shrink: 0;
+  width: 22px;
+}
+
+.heatmap-months-track {
+  position: relative;
+  height: 16px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.heatmap-month-label {
+  position: absolute;
+  top: 0;
   font-size: 0.65rem;
   color: var(--text-dim);
+  white-space: nowrap;
+  line-height: 16px;
+}
+
+/* ── Grid body: weekdays + cells ── */
+.heatmap-body {
+  display: flex;
+  gap: 6px;
 }
 
 .heatmap-weekdays {
   display: grid;
-  grid-template-rows: repeat(7, 1fr);
+  grid-template-rows: repeat(7, 13px);
   gap: 3px;
-  margin-right: 6px;
+  flex-shrink: 0;
+  width: 16px;
   font-size: 0.6rem;
   color: var(--text-dim);
   text-align: right;
 }
 
 .heatmap-weekdays span {
-  height: 14px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  line-height: 1;
 }
 
+.heatmap-grid-wrap {
+  overflow-x: auto;
+  padding: 2px;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-template-rows: repeat(7, 13px);
+  grid-auto-flow: column;
+  gap: 3px;
+}
+
+.heatmap-cell-empty {
+  width: 13px;
+  height: 13px;
+}
+
+.heatmap-cell {
+  width: 13px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--cell-bg, rgba(0, 240, 255, 0.04));
+  transition: box-shadow 0.15s ease, outline-color 0.15s ease;
+  cursor: default;
+}
+
+.heatmap-cell:hover {
+  box-shadow: 0 0 8px var(--cell-glow, transparent);
+  outline: 1px solid rgba(0, 240, 255, 0.3);
+  outline-offset: 0.5px;
+}
+
+.heatmap-cell[data-today="true"] {
+  outline: 1.5px solid var(--neon-cyan);
+  outline-offset: 0.5px;
+}
+
+/* ── Legend ── */
 .heatmap-legend {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 0.65rem;
   color: var(--text-dim);
 }
