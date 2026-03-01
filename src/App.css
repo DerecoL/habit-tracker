@@ -2424,10 +2424,11 @@
 @media (max-width: 768px) {
   .sync-panel {
     position: fixed;
-    top: 50%;
+    top: auto;
+    bottom: 80px;
     left: 50%;
     right: auto;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     width: calc(100vw - 48px);
     max-width: 280px;
   }
