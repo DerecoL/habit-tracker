@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Reward } from './types'
 import { STORAGE_REWARDS } from './types'
+import { useSync } from './SyncContext'
 
 function loadRewards(): Reward[] {
   try {
@@ -19,11 +20,26 @@ function loadRewards(): Reward[] {
 }
 
 export function useRewards() {
+  const { syncToCloud, subscribe } = useSync()
+  const isFromCloud = useRef(false)
+
   const [rewards, setRewards] = useState<Reward[]>(() => loadRewards())
 
   useEffect(() => {
+    return subscribe('rewards', (value: Reward[]) => {
+      isFromCloud.current = true
+      setRewards(value)
+    })
+  }, [subscribe])
+
+  useEffect(() => {
     localStorage.setItem(STORAGE_REWARDS, JSON.stringify(rewards))
-  }, [rewards])
+    if (isFromCloud.current) {
+      isFromCloud.current = false
+    } else {
+      syncToCloud('rewards', rewards)
+    }
+  }, [rewards, syncToCloud])
 
   const addReward = useCallback((name: string, cost: number) => {
     const reward: Reward = {

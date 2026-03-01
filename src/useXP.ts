@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { XPState } from './types'
 import { STORAGE_XP } from './types'
+import { useSync } from './SyncContext'
 
 function loadXP(): XPState {
   try {
@@ -14,11 +15,26 @@ function loadXP(): XPState {
 }
 
 export function useXP() {
+  const { syncToCloud, subscribe } = useSync()
+  const isFromCloud = useRef(false)
+
   const [xp, setXp] = useState<XPState>(() => loadXP())
 
   useEffect(() => {
+    return subscribe('xp', (value: XPState) => {
+      isFromCloud.current = true
+      setXp(value)
+    })
+  }, [subscribe])
+
+  useEffect(() => {
     localStorage.setItem(STORAGE_XP, JSON.stringify(xp))
-  }, [xp])
+    if (isFromCloud.current) {
+      isFromCloud.current = false
+    } else {
+      syncToCloud('xp', xp)
+    }
+  }, [xp, syncToCloud])
 
   const addXP = useCallback((amount: number) => {
     setXp(prev => ({ total: prev.total + amount }))

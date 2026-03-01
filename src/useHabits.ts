@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Habit, CheckIn, HabitType, CheckInStatus } from './types'
 import * as storage from './storage'
+import { useSync } from './SyncContext'
 
 function ensureHabitType(habits: Habit[]): Habit[] {
   return habits.map(h =>
@@ -9,18 +10,49 @@ function ensureHabitType(habits: Habit[]): Habit[] {
 }
 
 export function useHabits() {
+  const { syncToCloud, subscribe } = useSync()
+  const habitsFromCloud = useRef(false)
+  const checkInsFromCloud = useRef(false)
+
   const [habits, setHabits] = useState<Habit[]>(() =>
     ensureHabitType(storage.loadHabits())
   )
   const [checkIns, setCheckIns] = useState<CheckIn[]>(() => storage.loadCheckIns())
+
+  useEffect(() => {
+    const unsub1 = subscribe('habits', (value: Habit[]) => {
+      habitsFromCloud.current = true
+      setHabits(ensureHabitType(value))
+    })
+    const unsub2 = subscribe('checkins', (value: CheckIn[]) => {
+      checkInsFromCloud.current = true
+      setCheckIns(value)
+    })
+    return () => { unsub1(); unsub2() }
+  }, [subscribe])
 
   const refresh = useCallback(() => {
     setHabits(ensureHabitType(storage.loadHabits()))
     setCheckIns(storage.loadCheckIns())
   }, [])
 
-  useEffect(() => { storage.saveHabits(habits) }, [habits])
-  useEffect(() => { storage.saveCheckIns(checkIns) }, [checkIns])
+  useEffect(() => {
+    storage.saveHabits(habits)
+    if (habitsFromCloud.current) {
+      habitsFromCloud.current = false
+    } else {
+      syncToCloud('habits', habits)
+    }
+  }, [habits, syncToCloud])
+
+  useEffect(() => {
+    storage.saveCheckIns(checkIns)
+    if (checkInsFromCloud.current) {
+      checkInsFromCloud.current = false
+    } else {
+      syncToCloud('checkins', checkIns)
+    }
+  }, [checkIns, syncToCloud])
 
   const addHabit = useCallback((name: string, color: string, type: HabitType = 'basic') => {
     const id = crypto.randomUUID()

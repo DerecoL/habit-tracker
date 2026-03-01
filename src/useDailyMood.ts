@@ -1,16 +1,32 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { DailyMoodState } from './types'
 import * as storage from './storage'
+import { useSync } from './SyncContext'
 
 const MOOD_MIN = 1
 const MOOD_MAX = 5
 
 export function useDailyMood() {
+  const { syncToCloud, subscribe } = useSync()
+  const isFromCloud = useRef(false)
+
   const [mood, setMoodState] = useState<DailyMoodState>(() => storage.loadDailyMood())
 
   useEffect(() => {
+    return subscribe('dailyMood', (value: DailyMoodState) => {
+      isFromCloud.current = true
+      setMoodState(value)
+    })
+  }, [subscribe])
+
+  useEffect(() => {
     storage.saveDailyMood(mood)
-  }, [mood])
+    if (isFromCloud.current) {
+      isFromCloud.current = false
+    } else {
+      syncToCloud('dailyMood', mood)
+    }
+  }, [mood, syncToCloud])
 
   const getMood = useCallback(
     (date: string) => {

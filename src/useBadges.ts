@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { BADGE_DEFS, STORAGE_BADGES } from './types'
+import { useSync } from './SyncContext'
 
 function loadBadges(): string[] {
   try {
@@ -15,11 +16,26 @@ function loadBadges(): string[] {
 }
 
 export function useBadges() {
+  const { syncToCloud, subscribe } = useSync()
+  const isFromCloud = useRef(false)
+
   const [unlockedIds, setUnlockedIds] = useState<string[]>(() => loadBadges())
 
   useEffect(() => {
+    return subscribe('badges', (value: string[]) => {
+      isFromCloud.current = true
+      setUnlockedIds(value)
+    })
+  }, [subscribe])
+
+  useEffect(() => {
     localStorage.setItem(STORAGE_BADGES, JSON.stringify(unlockedIds))
-  }, [unlockedIds])
+    if (isFromCloud.current) {
+      isFromCloud.current = false
+    } else {
+      syncToCloud('badges', unlockedIds)
+    }
+  }, [unlockedIds, syncToCloud])
 
   const checkAndUnlock = useCallback(
     (stats: { totalCheckins: number; longestStreak: number; totalDays: number; habits: number }) => {

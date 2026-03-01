@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { FreezeState } from './types'
 import { STORAGE_FREEZES } from './types'
+import { useSync } from './SyncContext'
 
 const DEFAULT_FREEZE: FreezeState = { remaining: 2, usedDates: [] }
 
@@ -23,11 +24,26 @@ function loadFreezes(): FreezeState {
 }
 
 export function useFreezes() {
+  const { syncToCloud, subscribe } = useSync()
+  const isFromCloud = useRef(false)
+
   const [freezes, setFreezes] = useState<FreezeState>(() => loadFreezes())
 
   useEffect(() => {
+    return subscribe('freezes', (value: FreezeState) => {
+      isFromCloud.current = true
+      setFreezes(value)
+    })
+  }, [subscribe])
+
+  useEffect(() => {
     localStorage.setItem(STORAGE_FREEZES, JSON.stringify(freezes))
-  }, [freezes])
+    if (isFromCloud.current) {
+      isFromCloud.current = false
+    } else {
+      syncToCloud('freezes', freezes)
+    }
+  }, [freezes, syncToCloud])
 
   const useFreeze = useCallback((date: string) => {
     setFreezes(prev => {

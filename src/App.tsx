@@ -16,6 +16,8 @@ import { BadgeWall } from './components/BadgeWall'
 import { RewardManager } from './components/RewardManager'
 import { useTheme } from './useTheme'
 import { useI18n } from './i18n'
+import { useAuth } from './AuthContext'
+import { useSync } from './SyncContext'
 import { getOverallStreak, activeHabits } from './stats'
 import { XP_PER_BASIC, XP_PER_ADVANCED, XP_PER_SPECIAL } from './types'
 import { AuroraBackground } from './components/AuroraBackground'
@@ -47,6 +49,8 @@ export default function App() {
   const { toasts, toast } = useToast()
   const { theme, toggleTheme } = useTheme()
   const { locale, setLocale } = useI18n()
+  const { user, loading: authLoading, signIn, signOut } = useAuth()
+  const { syncStatus } = useSync()
 
   useEffect(() => { initReminder() }, [])
 
@@ -166,6 +170,27 @@ export default function App() {
       <header className="header">
         <h1 className="logo">HABIT_TRACKER<span className="logo-sub"> // 习惯打卡</span></h1>
         <div className="header-controls">
+          {!authLoading && (
+            user ? (
+              <div className="sync-indicator">
+                <span className={`sync-dot sync-${syncStatus}`} title={
+                  syncStatus === 'synced' ? '已同步' : syncStatus === 'syncing' ? '同步中...' : syncStatus === 'error' ? '同步失败' : '未连接'
+                } />
+                <img
+                  className="sync-avatar"
+                  src={user.photoURL ?? ''}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  onClick={signOut}
+                  title={`${user.displayName ?? user.email}\n点击登出`}
+                />
+              </div>
+            ) : (
+              <button type="button" className="header-ctrl-btn sync-login-btn" onClick={signIn} title="登录同步数据">
+                ⇄
+              </button>
+            )
+          )}
           <button type="button" className="header-ctrl-btn" onClick={toggleTheme} title={theme === 'dark' ? '切换亮色' : '切换暗色'}>
             {theme === 'dark' ? '☀' : '☾'}
           </button>
