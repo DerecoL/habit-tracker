@@ -18,7 +18,6 @@ import { useTheme } from './useTheme'
 import { useI18n } from './i18n'
 import { getOverallStreak, activeHabits } from './stats'
 import { XP_PER_BASIC, XP_PER_ADVANCED, XP_PER_SPECIAL } from './types'
-import { AuroraBackground } from './components/AuroraBackground'
 import './App.css'
 
 const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })))
@@ -162,7 +161,6 @@ export default function App() {
 
   return (
     <div className="app">
-      {theme === 'dark' && <AuroraBackground />}
       <header className="header">
         <h1 className="logo">HABIT_TRACKER<span className="logo-sub"> // 习惯打卡</span></h1>
         <div className="header-controls">

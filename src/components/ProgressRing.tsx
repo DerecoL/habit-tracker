@@ -11,8 +11,8 @@ interface ProgressRingProps {
 export function ProgressRing({
   percent, size = 120, stroke = 6,
   label, sublabel,
-  color = 'var(--neon-cyan)',
-  glowColor = 'var(--neon-cyan-glow)',
+  color = 'var(--accent-blue)',
+  glowColor = 'rgba(59, 130, 246, 0.15)',
 }: ProgressRingProps) {
   const r = (size - stroke) / 2
   const circ = 2 * Math.PI * r
