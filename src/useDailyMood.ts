@@ -32,5 +32,9 @@ export function useDailyMood() {
     })
   }, [])
 
-  return { getMood, setMood }
+  const refresh = useCallback(() => {
+    setMoodState(storage.loadDailyMood())
+  }, [])
+
+  return { getMood, setMood, refresh }
 }

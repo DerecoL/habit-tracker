@@ -3,22 +3,27 @@ import { dateStr, getWeekRange, getMonthRange, getYearRange, dateRange } from '.
 
 export type HabitType = import('./types').HabitType
 
-/** 每日打卡类习惯（基础+进阶） */
+/** 活跃习惯（未归档） */
+export function activeHabits(habits: Habit[]): Habit[] {
+  return habits.filter(h => !h.archived)
+}
+
+/** 每日打卡类习惯（基础+进阶，未归档） */
 export function dailyHabits(habits: Habit[]): Habit[] {
-  return habits.filter(h => h.type === 'basic' || h.type === 'advanced')
+  return habits.filter(h => !h.archived && (h.type === 'basic' || h.type === 'advanced'))
 }
 
 export function basicHabits(habits: Habit[]): Habit[] {
-  return habits.filter(h => h.type === 'basic')
+  return habits.filter(h => !h.archived && h.type === 'basic')
 }
 
 export function advancedHabits(habits: Habit[]): Habit[] {
-  return habits.filter(h => h.type === 'advanced')
+  return habits.filter(h => !h.archived && h.type === 'advanced')
 }
 
-/** 特殊习惯（按次数统计） */
+/** 特殊习惯（按次数统计，未归档） */
 export function specialHabits(habits: Habit[]): Habit[] {
-  return habits.filter(h => h.type === 'special')
+  return habits.filter(h => !h.archived && h.type === 'special')
 }
 
 /** 按习惯类型统计单日完成情况 */

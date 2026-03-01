@@ -1,5 +1,6 @@
 import type { HabitsState, CheckInsState, MemosState, DailyMoodState } from './types'
 import { STORAGE_HABITS, STORAGE_CHECKINS, STORAGE_MEMOS, STORAGE_DAILY_MOOD } from './types'
+import { syncToIDB, migrateToIDB } from './db'
 
 function loadJson<T>(key: string, fallback: T): T {
   try {
@@ -11,7 +12,10 @@ function loadJson<T>(key: string, fallback: T): T {
 
 function saveJson(key: string, value: unknown): void {
   localStorage.setItem(key, JSON.stringify(value))
+  syncToIDB(key, value)
 }
+
+migrateToIDB([STORAGE_HABITS, STORAGE_CHECKINS, STORAGE_MEMOS, STORAGE_DAILY_MOOD])
 
 export function loadHabits(): HabitsState {
   return loadJson<HabitsState>(STORAGE_HABITS, [])

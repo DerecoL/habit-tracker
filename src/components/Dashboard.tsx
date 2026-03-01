@@ -20,6 +20,8 @@ import { formatNaturalShort, formatWeekday, formatDateRange } from '../dateUtils
 import type { Habit, CheckIn } from '../types'
 import { MoodTrendChart } from './MoodTrendChart'
 import { HeatMap } from './HeatMap'
+import { InsightCards } from './InsightCards'
+import { Report } from './Report'
 
 interface DashboardProps {
   habits: Habit[]
@@ -276,9 +278,13 @@ export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckI
         </>
       )}
 
+      <InsightCards habits={habits} checkIns={checkIns} getMood={getMood} />
+
       <HeatMap habits={habits} checkIns={checkIns} />
 
       <MoodTrendChart getMood={getMood} days={14} />
+
+      <Report habits={habits} checkIns={checkIns} getMood={getMood} />
 
       {habits.length === 0 && (
         <div className="empty-state">

@@ -24,8 +24,16 @@ interface TrendChartProps {
   days?: number
 }
 
-export function TrendChart({ habits, checkIns, days = 30 }: TrendChartProps) {
+const RANGE_OPTIONS = [
+  { value: 7, label: '7天' },
+  { value: 30, label: '30天' },
+  { value: 90, label: '90天' },
+  { value: 0, label: '全部' },
+] as const
+
+export function TrendChart({ habits, checkIns, days: defaultDays = 30 }: TrendChartProps) {
   const [viewMode, setViewMode] = useState<TrendViewMode>('overall')
+  const [rangeDays, setRangeDays] = useState(defaultDays)
   const [selectedHabitIds, setSelectedHabitIds] = useState<string[]>(() =>
     dailyHabits(habits).map(h => h.id)
   )
@@ -41,13 +49,22 @@ export function TrendChart({ habits, checkIns, days = 30 }: TrendChartProps) {
     })
   }, [daily])
 
+  const effectiveDays = useMemo(() => {
+    if (rangeDays > 0) return rangeDays
+    const oldest = habits.reduce((min, h) => {
+      const d = new Date(h.createdAt).getTime()
+      return d < min ? d : min
+    }, Date.now())
+    return Math.max(30, Math.ceil((Date.now() - oldest) / 86400000) + 1)
+  }, [rangeDays, habits])
+
   const series = useMemo(
     () => getTrendSeriesConfig(habits, viewMode, selectedHabitIds),
     [habits, viewMode, selectedHabitIds]
   )
   const data = useMemo(
-    () => getTrendDataMulti(habits, checkIns, days, series),
-    [habits, checkIns, days, series]
+    () => getTrendDataMulti(habits, checkIns, effectiveDays, series),
+    [habits, checkIns, effectiveDays, series]
   )
 
   const hasAnyData = data.length > 0 && series.some(s => data.some(d => Number(d[s.dataKey]) > 0))
@@ -65,8 +82,18 @@ export function TrendChart({ habits, checkIns, days = 30 }: TrendChartProps) {
     <section className="panel trend">
       <h2 className="panel-title">ANALYTICS // 趋势曲线</h2>
       <p className="panel-desc">
-        最近 {days} 天完成率变化，可切换「整体 / 按类型 / 按习惯」查看不同维度的曲线
+        完成率变化趋势，可切换时间范围和维度
       </p>
+
+      <div className="trend-range-tabs">
+        {RANGE_OPTIONS.map(opt => (
+          <button key={opt.value} type="button"
+            className={`trend-filter-tab ${rangeDays === opt.value ? 'active' : ''}`}
+            onClick={() => setRangeDays(opt.value)}>
+            {opt.label}
+          </button>
+        ))}
+      </div>
 
       {daily.length > 0 && (
         <div className="trend-filters">

@@ -26,5 +26,9 @@ export function useMemos() {
     })
   }, [])
 
-  return { getMemo, setMemo }
+  const refresh = useCallback(() => {
+    setMemos(storage.loadMemos())
+  }, [])
+
+  return { getMemo, setMemo, refresh }
 }

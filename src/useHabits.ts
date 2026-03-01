@@ -82,6 +82,26 @@ export function useHabits() {
     [checkIns]
   )
 
+  const moveHabit = useCallback((id: string, direction: 'up' | 'down') => {
+    setHabits(prev => {
+      const idx = prev.findIndex(h => h.id === id)
+      if (idx < 0) return prev
+      const target = direction === 'up' ? idx - 1 : idx + 1
+      if (target < 0 || target >= prev.length) return prev
+      const next = [...prev]
+      ;[next[idx], next[target]] = [next[target], next[idx]]
+      return next
+    })
+  }, [])
+
+  const archiveHabit = useCallback((id: string) => {
+    setHabits(prev => prev.map(h => h.id === id ? { ...h, archived: true } : h))
+  }, [])
+
+  const unarchiveHabit = useCallback((id: string) => {
+    setHabits(prev => prev.map(h => h.id === id ? { ...h, archived: false } : h))
+  }, [])
+
   return {
     habits,
     checkIns,
@@ -89,6 +109,9 @@ export function useHabits() {
     addHabit,
     updateHabit,
     removeHabit,
+    moveHabit,
+    archiveHabit,
+    unarchiveHabit,
     toggleCheckIn,
     addSpecialCheckIn,
     removeOneSpecialCheckIn,

@@ -64,6 +64,82 @@
   --mood-line: var(--neon-purple);
 }
 
+/* ── Light Theme Override ── */
+[data-theme="light"] {
+  --bg: #f0f2f5;
+  --bg-elevated: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-hover: rgba(0, 120, 200, 0.06);
+
+  --text: #1a1a2e;
+  --text-muted: #5a6380;
+  --text-dim: #8a90a5;
+
+  --neon-cyan: #0088cc;
+  --neon-cyan-dim: #006699;
+  --neon-cyan-soft: rgba(0, 136, 204, 0.08);
+  --neon-cyan-glow: rgba(0, 136, 204, 0.2);
+
+  --neon-pink: #d42578;
+  --neon-pink-dim: #b01e65;
+  --neon-pink-soft: rgba(212, 37, 120, 0.08);
+  --neon-pink-glow: rgba(212, 37, 120, 0.2);
+
+  --neon-purple: #8b2fc6;
+  --neon-purple-soft: rgba(139, 47, 198, 0.08);
+
+  --neon-green: #15a040;
+  --neon-green-soft: rgba(21, 160, 64, 0.08);
+  --neon-yellow: #c5a800;
+
+  --border: rgba(0, 120, 200, 0.12);
+  --border-subtle: rgba(0, 120, 200, 0.06);
+  --border-glow: rgba(0, 120, 200, 0.18);
+
+  --shadow-neon: 0 2px 8px rgba(0, 120, 200, 0.1);
+  --shadow-neon-pink: 0 2px 8px rgba(212, 37, 120, 0.1);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.08);
+
+  --grid-stroke: rgba(0, 0, 0, 0.06);
+  --chart-muted: #6b7280;
+  --tooltip-bg: #ffffff;
+  --mood-line: var(--neon-purple);
+}
+
+[data-theme="light"] body::before {
+  background:
+    linear-gradient(rgba(0, 120, 200, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 120, 200, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+[data-theme="light"] body::after {
+  display: none;
+}
+
+[data-theme="light"] #root::before {
+  background: radial-gradient(ellipse, rgba(0, 136, 204, 0.04) 0%, transparent 70%);
+}
+
+[data-theme="light"] #root::after {
+  background: radial-gradient(ellipse, rgba(212, 37, 120, 0.03) 0%, transparent 70%);
+}
+
+[data-theme="light"] ::selection {
+  background: rgba(0, 136, 204, 0.2);
+  color: #000;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: #f0f2f5;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 120, 200, 0.15);
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }

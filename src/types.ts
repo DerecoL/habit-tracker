@@ -8,6 +8,9 @@ export interface Habit {
   color: string
   type: HabitType
   createdAt: string // ISO date
+  archived?: boolean
+  goalPerWeek?: number
+  goalPerMonth?: number
 }
 
 // 一次打卡记录。基础/进阶：每天至多一条表示“当天完成”；特殊：可多条表示“当天执行次数”

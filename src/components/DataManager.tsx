@@ -40,9 +40,19 @@ export function DataManager({ onImported }: DataManagerProps) {
       try {
         const data = JSON.parse(reader.result as string)
         if (typeof data !== 'object' || data === null) throw new Error('格式错误')
+        const validators: Record<string, (v: unknown) => boolean> = {
+          [STORAGE_HABITS]: v => Array.isArray(v),
+          [STORAGE_CHECKINS]: v => Array.isArray(v),
+          [STORAGE_MEMOS]: v => typeof v === 'object' && v !== null && !Array.isArray(v),
+          [STORAGE_DAILY_MOOD]: v => typeof v === 'object' && v !== null && !Array.isArray(v),
+        }
         let restored = 0
         for (const key of ALL_KEYS) {
           if (key in data) {
+            const validate = validators[key]
+            if (validate && !validate(data[key])) {
+              throw new Error(`数据项 "${key}" 格式不合法`)
+            }
             localStorage.setItem(key, JSON.stringify(data[key]))
             restored++
           }
