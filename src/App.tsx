@@ -2,13 +2,22 @@ import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react'
 import { useHabits } from './useHabits'
 import { useMemos } from './useMemos'
 import { useDailyMood } from './useDailyMood'
+import { useXP } from './useXP'
+import { useBadges } from './useBadges'
+import { useRewards } from './useRewards'
+import { useFreezes } from './useFreezes'
 import { DataManager } from './components/DataManager'
 import { ReminderSettings, initReminder } from './components/ReminderSettings'
 import { useToast, ToastContainer } from './components/Toast'
 import { Celebration } from './components/Celebration'
 import { Onboarding, shouldShowOnboarding } from './components/Onboarding'
+import { XPBar } from './components/XPBar'
+import { BadgeWall } from './components/BadgeWall'
+import { RewardManager } from './components/RewardManager'
 import { useTheme } from './useTheme'
 import { useI18n } from './i18n'
+import { getOverallStreak, activeHabits } from './stats'
+import { XP_PER_BASIC, XP_PER_ADVANCED, XP_PER_SPECIAL } from './types'
 import './App.css'
 
 const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })))
@@ -26,6 +35,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 ]
 
 const TAB_INDEX: Record<Tab, number> = { overview: 0, daily: 1, habits: 2, trend: 3 }
+const TAB_IDS: Tab[] = ['overview', 'daily', 'habits', 'trend']
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('overview')
@@ -47,6 +57,19 @@ export default function App() {
     setTabKey(k => k + 1)
   }, [])
 
+  // Keyboard shortcuts (D4)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (e.key >= '1' && e.key <= '4') {
+        e.preventDefault()
+        switchTab(TAB_IDS[parseInt(e.key) - 1])
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [switchTab])
+
   const {
     habits,
     checkIns,
@@ -58,6 +81,10 @@ export default function App() {
     archiveHabit,
     unarchiveHabit,
     toggleCheckIn: rawToggleCheckIn,
+    skipCheckIn: rawSkipCheckIn,
+    setCheckInNote,
+    getCheckInStatus,
+    getCheckInNote,
     addSpecialCheckIn: rawAddSpecial,
     removeOneSpecialCheckIn,
     isCheckedIn,
@@ -65,6 +92,21 @@ export default function App() {
   } = useHabits()
   const { getMemo, setMemo, refresh: refreshMemos } = useMemos()
   const { getMood, setMood, refresh: refreshMood } = useDailyMood()
+  const { xp, addXP } = useXP()
+  const { unlockedIds, checkAndUnlock } = useBadges()
+  const { rewards, addReward, redeemReward: rawRedeemReward, removeReward } = useRewards()
+  const { freezes } = useFreezes()
+
+  // Update badges whenever relevant data changes
+  useEffect(() => {
+    const active = activeHabits(habits)
+    const totalCheckins = checkIns.filter(c => !c.status || c.status === 'done').length
+    const longestStreak = getOverallStreak(habits, checkIns)
+    const totalDays = habits.length > 0
+      ? Math.ceil((Date.now() - Math.min(...habits.map(h => new Date(h.createdAt).getTime()))) / 86400000)
+      : 0
+    checkAndUnlock({ totalCheckins, longestStreak, totalDays, habits: active.length })
+  }, [habits, checkIns, checkAndUnlock])
 
   const refreshAll = useCallback(() => {
     refresh()
@@ -90,13 +132,32 @@ export default function App() {
   const toggleCheckIn = useCallback((habitId: string, date: string) => {
     const wasDone = isCheckedIn(habitId, date)
     rawToggleCheckIn(habitId, date)
+    if (!wasDone) {
+      const h = habits.find(x => x.id === habitId)
+      const amount = h?.type === 'advanced' ? XP_PER_ADVANCED : h?.type === 'special' ? XP_PER_SPECIAL : XP_PER_BASIC
+      addXP(amount)
+    }
     toast(wasDone ? '已取消打卡' : '打卡成功！', wasDone ? 'info' : 'success')
-  }, [rawToggleCheckIn, isCheckedIn, toast])
+  }, [rawToggleCheckIn, isCheckedIn, toast, habits, addXP])
+
+  const skipCheckIn = useCallback((habitId: string, date: string) => {
+    rawSkipCheckIn(habitId, date)
+    toast('已标记跳过', 'info')
+  }, [rawSkipCheckIn, toast])
 
   const addSpecialCheckIn = useCallback((habitId: string, date: string) => {
     rawAddSpecial(habitId, date)
+    addXP(XP_PER_SPECIAL)
     toast('+1 打卡记录', 'success')
-  }, [rawAddSpecial, toast])
+  }, [rawAddSpecial, toast, addXP])
+
+  const skeletonFallback = (
+    <div className="skeleton-wrap">
+      <div className="skeleton-block skeleton-title" />
+      <div className="skeleton-block skeleton-card" />
+      <div className="skeleton-block skeleton-card" />
+    </div>
+  )
 
   return (
     <div className="app">
@@ -111,12 +172,13 @@ export default function App() {
           </button>
         </div>
         <nav className="tabs">
-          {TABS.map(t => (
+          {TABS.map((t, i) => (
             <button
               key={t.id}
               type="button"
               className={`tab ${tab === t.id ? 'active' : ''}`}
               onClick={() => switchTab(t.id)}
+              title={`快捷键: ${i + 1}`}
             >
               <span className="tab-icon">{t.icon}</span> {t.label}
             </button>
@@ -125,14 +187,18 @@ export default function App() {
       </header>
 
       <main className={`main main-slide-${slideDir}`} key={tabKey}>
-        <Suspense fallback={<div className="loading-fallback">加载中…</div>}>
-          {tab === 'overview' && <Dashboard habits={habits} checkIns={checkIns} getMood={getMood} isCheckedIn={isCheckedIn} toggleCheckIn={toggleCheckIn} onGoManage={() => switchTab('habits')} />}
+        <Suspense fallback={skeletonFallback}>
+          {tab === 'overview' && <Dashboard habits={habits} checkIns={checkIns} getMood={getMood} isCheckedIn={isCheckedIn} toggleCheckIn={toggleCheckIn} onGoManage={() => switchTab('habits')} xp={xp.total} unlockedBadgeIds={unlockedIds} freezes={freezes} />}
           {tab === 'daily' && (
             <DailyCheckIn
               habits={habits}
               checkIns={checkIns}
               isCheckedIn={isCheckedIn}
               toggleCheckIn={toggleCheckIn}
+              skipCheckIn={skipCheckIn}
+              getCheckInStatus={getCheckInStatus}
+              getCheckInNote={getCheckInNote}
+              setCheckInNote={setCheckInNote}
               addSpecialCheckIn={addSpecialCheckIn}
               removeOneSpecialCheckIn={removeOneSpecialCheckIn}
               getSpecialCount={getSpecialCount}
@@ -154,8 +220,11 @@ export default function App() {
                 archiveHabit={archiveHabit}
                 unarchiveHabit={unarchiveHabit}
               />
+              <XPBar totalXp={xp.total} />
+              <BadgeWall unlockedIds={unlockedIds} />
+              <RewardManager rewards={rewards} xpBalance={xp.total} addReward={addReward} redeemReward={(id: string) => { const r = rewards.find(x => x.id === id); if (r && xp.total >= r.cost) { addXP(-r.cost); rawRedeemReward(id) } }} removeReward={removeReward} />
               <ReminderSettings />
-              <DataManager onImported={refreshAll} />
+              <DataManager onImported={refreshAll} habits={habits} checkIns={checkIns} />
             </>
           )}
           {tab === 'trend' && <TrendChart habits={habits} checkIns={checkIns} />}

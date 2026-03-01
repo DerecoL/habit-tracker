@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import type { Habit, CheckIn, HabitType } from './types'
+import type { Habit, CheckIn, HabitType, CheckInStatus } from './types'
 import * as storage from './storage'
 
 function ensureHabitType(habits: Habit[]): Habit[] {
@@ -19,27 +19,16 @@ export function useHabits() {
     setCheckIns(storage.loadCheckIns())
   }, [])
 
-  useEffect(() => {
-    storage.saveHabits(habits)
-  }, [habits])
-
-  useEffect(() => {
-    storage.saveCheckIns(checkIns)
-  }, [checkIns])
+  useEffect(() => { storage.saveHabits(habits) }, [habits])
+  useEffect(() => { storage.saveCheckIns(checkIns) }, [checkIns])
 
   const addHabit = useCallback((name: string, color: string, type: HabitType = 'basic') => {
     const id = crypto.randomUUID()
-    const habit: Habit = {
-      id,
-      name,
-      color,
-      type,
-      createdAt: new Date().toISOString(),
-    }
+    const habit: Habit = { id, name, color, type, createdAt: new Date().toISOString() }
     setHabits(prev => [...prev, habit])
   }, [])
 
-  const updateHabit = useCallback((id: string, updates: Partial<Pick<Habit, 'name' | 'color' | 'type'>>) => {
+  const updateHabit = useCallback((id: string, updates: Partial<Pick<Habit, 'name' | 'color' | 'type' | 'icon' | 'group' | 'frequency' | 'goalPerWeek' | 'goalPerMonth'>>) => {
     setHabits(prev => prev.map(h => (h.id === id ? { ...h, ...updates } : h)))
   }, [])
 
@@ -50,16 +39,50 @@ export function useHabits() {
 
   const toggleCheckIn = useCallback((habitId: string, date: string) => {
     setCheckIns(prev => {
-      const hasAny = prev.some(c => c.habitId === habitId && c.date === date)
-      if (hasAny) {
-        return prev.filter(c => !(c.habitId === habitId && c.date === date))
+      const existing = prev.find(c => c.habitId === habitId && c.date === date && c.status !== 'skip')
+      if (existing) {
+        return prev.filter(c => !(c.habitId === habitId && c.date === date && c.status !== 'skip'))
       }
-      return [...prev, { habitId, date }]
+      return [...prev, { habitId, date, status: 'done' as CheckInStatus }]
     })
   }, [])
 
+  const skipCheckIn = useCallback((habitId: string, date: string) => {
+    setCheckIns(prev => {
+      const filtered = prev.filter(c => !(c.habitId === habitId && c.date === date))
+      return [...filtered, { habitId, date, status: 'skip' as CheckInStatus }]
+    })
+  }, [])
+
+  const setCheckInNote = useCallback((habitId: string, date: string, note: string) => {
+    setCheckIns(prev => {
+      const idx = prev.findIndex(c => c.habitId === habitId && c.date === date && c.status !== 'skip')
+      if (idx < 0) return prev
+      const next = [...prev]
+      next[idx] = { ...next[idx], note }
+      return next
+    })
+  }, [])
+
+  const getCheckInStatus = useCallback(
+    (habitId: string, date: string): 'done' | 'skip' | 'none' => {
+      const c = checkIns.find(ci => ci.habitId === habitId && ci.date === date)
+      if (!c) return 'none'
+      return c.status === 'skip' ? 'skip' : 'done'
+    },
+    [checkIns]
+  )
+
+  const getCheckInNote = useCallback(
+    (habitId: string, date: string): string => {
+      const c = checkIns.find(ci => ci.habitId === habitId && ci.date === date && ci.status !== 'skip')
+      return c?.note ?? ''
+    },
+    [checkIns]
+  )
+
   const addSpecialCheckIn = useCallback((habitId: string, date: string) => {
-    setCheckIns(prev => [...prev, { habitId, date }])
+    setCheckIns(prev => [...prev, { habitId, date, status: 'done' as CheckInStatus }])
   }, [])
 
   const removeOneSpecialCheckIn = useCallback((habitId: string, date: string) => {
@@ -72,13 +95,13 @@ export function useHabits() {
 
   const isCheckedIn = useCallback(
     (habitId: string, date: string) =>
-      checkIns.some(c => c.habitId === habitId && c.date === date),
+      checkIns.some(c => c.habitId === habitId && c.date === date && c.status !== 'skip'),
     [checkIns]
   )
 
   const getSpecialCount = useCallback(
     (habitId: string, date: string) =>
-      checkIns.filter(c => c.habitId === habitId && c.date === date).length,
+      checkIns.filter(c => c.habitId === habitId && c.date === date && c.status !== 'skip').length,
     [checkIns]
   )
 
@@ -103,19 +126,12 @@ export function useHabits() {
   }, [])
 
   return {
-    habits,
-    checkIns,
-    refresh,
-    addHabit,
-    updateHabit,
-    removeHabit,
-    moveHabit,
-    archiveHabit,
-    unarchiveHabit,
-    toggleCheckIn,
-    addSpecialCheckIn,
-    removeOneSpecialCheckIn,
-    isCheckedIn,
-    getSpecialCount,
+    habits, checkIns, refresh,
+    addHabit, updateHabit, removeHabit,
+    moveHabit, archiveHabit, unarchiveHabit,
+    toggleCheckIn, skipCheckIn,
+    setCheckInNote, getCheckInStatus, getCheckInNote,
+    addSpecialCheckIn, removeOneSpecialCheckIn,
+    isCheckedIn, getSpecialCount,
   }
 }

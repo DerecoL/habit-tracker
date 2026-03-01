@@ -1,4 +1,5 @@
 import type { Habit, CheckIn } from './types'
+import { isHabitDueOn } from './types'
 import { dateStr, getWeekRange, getMonthRange, getYearRange, dateRange } from './dateUtils'
 
 export type HabitType = import('./types').HabitType
@@ -33,11 +34,11 @@ export function getDayStatsByType(
   dayStr: string,
   type: import('./types').HabitType
 ): PeriodStats {
-  const filtered = habits.filter(h => h.type === type)
+  const filtered = habits.filter(h => !h.archived && h.type === type)
   const total = filtered.length
   if (total === 0) return { total: 0, completed: 0, percent: 0 }
   const completed = filtered.filter(h =>
-    checkIns.some(c => c.habitId === h.id && c.date === dayStr)
+    checkIns.some(c => c.habitId === h.id && c.date === dayStr && c.status !== 'skip')
   ).length
   return { total, completed, percent: Math.round((completed / total) * 100) }
 }
@@ -49,7 +50,7 @@ export function getPeriodStatsByType(
   dates: string[],
   type: import('./types').HabitType
 ): PeriodStats {
-  const filtered = habits.filter(h => h.type === type)
+  const filtered = habits.filter(h => !h.archived && h.type === type)
   const total = filtered.length * dates.length
   if (total === 0) return { total: 0, completed: 0, percent: 0 }
   let completed = 0
@@ -76,7 +77,7 @@ function completedDatesForHabitInRange(
   const dateSet = new Set(dates)
   const seen = new Set<string>()
   for (const c of checkIns) {
-    if (c.habitId === habitId && dateSet.has(c.date)) seen.add(c.date)
+    if (c.habitId === habitId && dateSet.has(c.date) && c.status !== 'skip') seen.add(c.date)
   }
   return seen.size
 }
@@ -89,11 +90,11 @@ export function getDayStats(
   checkIns: CheckIn[],
   dayStr: string
 ): PeriodStats {
-  const daily = dailyHabits(habits)
-  const total = daily.length
+  const due = dailyHabits(habits).filter(h => isHabitDueOn(h, dayStr))
+  const total = due.length
   if (total === 0) return { total: 0, completed: 0, percent: 0 }
-  const completed = daily.filter(h =>
-    checkIns.some(c => c.habitId === h.id && c.date === dayStr)
+  const completed = due.filter(h =>
+    checkIns.some(c => c.habitId === h.id && c.date === dayStr && c.status !== 'skip')
   ).length
   return { total, completed, percent: Math.round((completed / total) * 100) }
 }
@@ -106,11 +107,11 @@ export function getBasicDayStats(
   checkIns: CheckIn[],
   dayStr: string
 ): PeriodStats {
-  const basics = basicHabits(habits)
-  const total = basics.length
+  const due = basicHabits(habits).filter(h => isHabitDueOn(h, dayStr))
+  const total = due.length
   if (total === 0) return { total: 0, completed: 0, percent: 0 }
-  const completed = basics.filter(h =>
-    checkIns.some(c => c.habitId === h.id && c.date === dayStr)
+  const completed = due.filter(h =>
+    checkIns.some(c => c.habitId === h.id && c.date === dayStr && c.status !== 'skip')
   ).length
   return { total, completed, percent: Math.round((completed / total) * 100) }
 }
@@ -118,55 +119,32 @@ export function getBasicDayStats(
 /**
  * 本周/本月/本年：仅统计每日类习惯，完成人天/总人天
  */
-export function getWeekStats(
-  habits: Habit[],
-  checkIns: CheckIn[],
-  refDate: Date
-): PeriodStats {
+function frequencyAwarePeriodStats(habits: Habit[], checkIns: CheckIn[], dates: string[]): PeriodStats {
   const daily = dailyHabits(habits)
+  let total = 0
+  let completed = 0
+  for (const h of daily) {
+    const dueDates = dates.filter(d => isHabitDueOn(h, d))
+    total += dueDates.length
+    completed += completedDatesForHabitInRange(h.id, checkIns, dueDates)
+  }
+  if (total === 0) return { total: 0, completed: 0, percent: 0 }
+  return { total, completed, percent: Math.round((completed / total) * 100) }
+}
+
+export function getWeekStats(habits: Habit[], checkIns: CheckIn[], refDate: Date): PeriodStats {
   const { start, end } = getWeekRange(refDate)
-  const dates = dateRange(start, end)
-  const total = daily.length * dates.length
-  if (total === 0) return { total: 0, completed: 0, percent: 0 }
-  let completed = 0
-  for (const h of daily) {
-    completed += completedDatesForHabitInRange(h.id, checkIns, dates)
-  }
-  return { total, completed, percent: Math.round((completed / total) * 100) }
+  return frequencyAwarePeriodStats(habits, checkIns, dateRange(start, end))
 }
 
-export function getMonthStats(
-  habits: Habit[],
-  checkIns: CheckIn[],
-  refDate: Date
-): PeriodStats {
-  const daily = dailyHabits(habits)
+export function getMonthStats(habits: Habit[], checkIns: CheckIn[], refDate: Date): PeriodStats {
   const { start, end } = getMonthRange(refDate)
-  const dates = dateRange(start, end)
-  const total = daily.length * dates.length
-  if (total === 0) return { total: 0, completed: 0, percent: 0 }
-  let completed = 0
-  for (const h of daily) {
-    completed += completedDatesForHabitInRange(h.id, checkIns, dates)
-  }
-  return { total, completed, percent: Math.round((completed / total) * 100) }
+  return frequencyAwarePeriodStats(habits, checkIns, dateRange(start, end))
 }
 
-export function getYearStats(
-  habits: Habit[],
-  checkIns: CheckIn[],
-  refDate: Date
-): PeriodStats {
-  const daily = dailyHabits(habits)
+export function getYearStats(habits: Habit[], checkIns: CheckIn[], refDate: Date): PeriodStats {
   const { start, end } = getYearRange(refDate)
-  const dates = dateRange(start, end)
-  const total = daily.length * dates.length
-  if (total === 0) return { total: 0, completed: 0, percent: 0 }
-  let completed = 0
-  for (const h of daily) {
-    completed += completedDatesForHabitInRange(h.id, checkIns, dates)
-  }
-  return { total, completed, percent: Math.round((completed / total) * 100) }
+  return frequencyAwarePeriodStats(habits, checkIns, dateRange(start, end))
 }
 
 /** 特殊习惯在时间段内的执行次数 */
@@ -265,7 +243,7 @@ export function getTrendSeriesConfig(
 
 /** 某天某习惯是否打卡 */
 function isCheckedInOn(habitId: string, checkIns: CheckIn[], date: string): boolean {
-  return checkIns.some(c => c.habitId === habitId && c.date === date)
+  return checkIns.some(c => c.habitId === habitId && c.date === date && c.status !== 'skip')
 }
 
 /** 多系列趋势数据：data 中每个点含 date 与各 series 的完成率 */
@@ -311,7 +289,7 @@ export function getTrendDataMulti(
  */
 export function getHabitStreak(habitId: string, checkIns: CheckIn[]): number {
   const checkedDates = new Set(
-    checkIns.filter(c => c.habitId === habitId).map(c => c.date)
+    checkIns.filter(c => c.habitId === habitId && c.status !== 'skip').map(c => c.date)
   )
   if (checkedDates.size === 0) return 0
   const today = new Date()
@@ -339,8 +317,10 @@ export function getOverallStreak(habits: Habit[], checkIns: CheckIn[]): number {
   today.setHours(0, 0, 0, 0)
   let cur = new Date(today)
 
-  const allDoneOn = (d: string) =>
-    basics.every(h => checkIns.some(c => c.habitId === h.id && c.date === d))
+  const allDoneOn = (d: string) => {
+    const due = basics.filter(h => isHabitDueOn(h, d))
+    return due.length > 0 && due.every(h => checkIns.some(c => c.habitId === h.id && c.date === d && c.status !== 'skip'))
+  }
 
   if (!allDoneOn(dateStr(cur))) {
     cur.setDate(cur.getDate() - 1)

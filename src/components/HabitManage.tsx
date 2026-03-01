@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
-import type { Habit, HabitType } from '../types'
-import { DEFAULT_COLORS } from '../types'
+import type { Habit, HabitType, HabitFrequency, FrequencyType } from '../types'
+import { DEFAULT_COLORS, HABIT_ICONS, HABIT_GROUPS } from '../types'
+
+const WEEKDAY_SHORT = ['日', '一', '二', '三', '四', '五', '六']
+const FREQ_TYPES: { value: FrequencyType; label: string }[] = [
+  { value: 'daily', label: '每天' },
+  { value: 'weekdays', label: '指定周几' },
+  { value: 'interval', label: '每N天' },
+]
 
 const HABIT_TYPES: { value: HabitType; label: string }[] = [
   { value: 'basic', label: '基础' },
@@ -22,7 +29,7 @@ const TEMPLATES: { name: string; type: HabitType; color: string }[] = [
 interface HabitManageProps {
   habits: Habit[]
   addHabit: (name: string, color: string, type: HabitType) => void
-  updateHabit: (id: string, updates: Partial<Pick<Habit, 'name' | 'color' | 'type' | 'goalPerWeek' | 'goalPerMonth'>>) => void
+  updateHabit: (id: string, updates: Partial<Pick<Habit, 'name' | 'color' | 'type' | 'icon' | 'group' | 'frequency' | 'goalPerWeek' | 'goalPerMonth'>>) => void
   removeHabit: (id: string) => void
   moveHabit: (id: string, direction: 'up' | 'down') => void
   archiveHabit: (id: string) => void
@@ -47,6 +54,11 @@ export function HabitManage({
   const [editType, setEditType] = useState<HabitType>('basic')
   const [editGoalWeek, setEditGoalWeek] = useState(0)
   const [editGoalMonth, setEditGoalMonth] = useState(0)
+  const [editIcon, setEditIcon] = useState('')
+  const [editGroup, setEditGroup] = useState('')
+  const [editFreqType, setEditFreqType] = useState<FrequencyType>('daily')
+  const [editWeekdays, setEditWeekdays] = useState<number[]>([])
+  const [editInterval, setEditInterval] = useState(2)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
@@ -79,14 +91,26 @@ export function HabitManage({
     setEditType(h.type)
     setEditGoalWeek(h.goalPerWeek ?? 0)
     setEditGoalMonth(h.goalPerMonth ?? 0)
+    setEditIcon(h.icon ?? '')
+    setEditGroup(h.group ?? '')
+    setEditFreqType(h.frequency?.type ?? 'daily')
+    setEditWeekdays(h.frequency?.weekdays ?? [])
+    setEditInterval(h.frequency?.intervalDays ?? 2)
   }
 
   const saveEdit = () => {
     if (editingId && editName.trim()) {
+      const freq: HabitFrequency | undefined =
+        editType !== 'special' && editFreqType !== 'daily'
+          ? { type: editFreqType, weekdays: editFreqType === 'weekdays' ? editWeekdays : undefined, intervalDays: editFreqType === 'interval' ? editInterval : undefined }
+          : undefined
       updateHabit(editingId, {
         name: editName.trim(),
         color: editColor,
         type: editType,
+        icon: editIcon || undefined,
+        group: editGroup || undefined,
+        frequency: freq,
         goalPerWeek: editType === 'special' && editGoalWeek > 0 ? editGoalWeek : undefined,
         goalPerMonth: editType === 'special' && editGoalMonth > 0 ? editGoalMonth : undefined,
       })
@@ -138,6 +162,49 @@ export function HabitManage({
               ))}
             </div>
           </div>
+          <div className="habit-edit-row">
+            <span className="habit-edit-label">图标</span>
+            <div className="habit-icon-select">
+              <button type="button" className={`habit-icon-btn ${!editIcon ? 'active' : ''}`} onClick={() => setEditIcon('')}>无</button>
+              {HABIT_ICONS.map(ic => (
+                <button key={ic} type="button" className={`habit-icon-btn ${editIcon === ic ? 'active' : ''}`} onClick={() => setEditIcon(ic)}>{ic}</button>
+              ))}
+            </div>
+          </div>
+          <div className="habit-edit-row">
+            <span className="habit-edit-label">分组</span>
+            <div className="habit-group-select">
+              <button type="button" className={`habit-type-btn ${!editGroup ? 'active' : ''}`} onClick={() => setEditGroup('')}>无</button>
+              {HABIT_GROUPS.map(g => (
+                <button key={g} type="button" className={`habit-type-btn ${editGroup === g ? 'active' : ''}`} onClick={() => setEditGroup(g)}>{g}</button>
+              ))}
+            </div>
+          </div>
+          {editType !== 'special' && (
+            <div className="habit-edit-row">
+              <span className="habit-edit-label">频率</span>
+              <div className="habit-freq-select">
+                {FREQ_TYPES.map(f => (
+                  <button key={f.value} type="button" className={`habit-type-btn ${editFreqType === f.value ? 'active' : ''}`} onClick={() => setEditFreqType(f.value)}>{f.label}</button>
+                ))}
+              </div>
+              {editFreqType === 'weekdays' && (
+                <div className="habit-weekday-select">
+                  {WEEKDAY_SHORT.map((d, i) => (
+                    <button key={i} type="button" className={`weekday-btn ${editWeekdays.includes(i) ? 'active' : ''}`}
+                      onClick={() => setEditWeekdays(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}>{d}</button>
+                  ))}
+                </div>
+              )}
+              {editFreqType === 'interval' && (
+                <label className="goal-input-wrap">
+                  <span>每</span>
+                  <input type="number" min={2} max={30} className="goal-input" value={editInterval} onChange={e => setEditInterval(Math.max(2, parseInt(e.target.value) || 2))} />
+                  <span>天</span>
+                </label>
+              )}
+            </div>
+          )}
           {editType === 'special' && (
             <div className="habit-edit-row">
               <span className="habit-edit-label">目标</span>
@@ -187,8 +254,14 @@ export function HabitManage({
             <button type="button" className="sort-btn" disabled={idx === list.length - 1}
               onClick={() => moveHabit(h.id, 'down')} title="下移">▼</button>
           </div>
-          <span className="habit-list-dot" style={{ background: h.color }} />
+          <span className="habit-list-dot" style={{ background: h.color }}>{h.icon || ''}</span>
           <span className="habit-list-name" onClick={() => startEdit(h)}>{h.name}</span>
+          {h.group && <span className="habit-list-group">{h.group}</span>}
+          {h.frequency && h.frequency.type !== 'daily' && (
+            <span className="habit-list-freq">
+              {h.frequency.type === 'weekdays' ? (h.frequency.weekdays ?? []).map(d => WEEKDAY_SHORT[d]).join('') : `每${h.frequency.intervalDays}天`}
+            </span>
+          )}
           {h.type === 'special' && (h.goalPerWeek || h.goalPerMonth) && (
             <span className="habit-list-goal">
               {h.goalPerWeek ? `${h.goalPerWeek}次/周` : ''}{h.goalPerWeek && h.goalPerMonth ? ' · ' : ''}{h.goalPerMonth ? `${h.goalPerMonth}次/月` : ''}
@@ -257,6 +330,22 @@ export function HabitManage({
             />
           ))}
         </div>
+        <details className="habit-add-more">
+          <summary className="habit-add-more-toggle">更多选项（图标/分组）</summary>
+          <div className="habit-add-more-body">
+            <div className="habit-edit-row">
+              <span className="habit-edit-label">图标</span>
+              <div className="habit-icon-select">
+                {HABIT_ICONS.map(ic => (
+                  <button key={ic} type="button" className="habit-icon-btn" onClick={() => {
+                    const name = newName.trim()
+                    if (name) { addHabit(name, newColor, newType); setNewName('') }
+                  }}>{ic}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </details>
         <div className="habit-add-actions">
           <button type="button" className="btn btn-primary" onClick={handleAdd}>
             添加习惯

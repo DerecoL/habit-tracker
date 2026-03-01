@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { dateRange, todayStr, parseDate, formatNaturalShort, formatWeekday } from '../dateUtils'
 import { getDayStats, dailyHabits } from '../stats'
 import type { Habit, CheckIn } from '../types'
@@ -25,6 +25,7 @@ interface HeatMapProps {
 export function HeatMap({ habits, checkIns }: HeatMapProps) {
   const today = todayStr()
   const hasDailyHabits = dailyHabits(habits).length > 0
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null)
 
   const { cells, monthLabels, totalCols } = useMemo(() => {
     const end = new Date()
@@ -41,11 +42,11 @@ export function HeatMap({ habits, checkIns }: HeatMapProps) {
     const padded: (string | null)[] = Array(paddingBefore).fill(null).concat(dates)
 
     const cells = padded.map(date => {
-      if (!date) return { date: null, pct: -1, label: '' }
+      if (!date) return { date: null, pct: -1, label: '', completed: 0, total: 0 }
       const stat = getDayStats(habits, checkIns, date)
       const d = parseDate(date)
       const label = `${formatNaturalShort(d)} ${formatWeekday(d)} · ${stat.total > 0 ? `${stat.percent}%` : '无习惯'}`
-      return { date, pct: stat.total > 0 ? stat.percent : -1, label }
+      return { date, pct: stat.total > 0 ? stat.percent : -1, label, completed: stat.completed, total: stat.total }
     })
 
     const monthLabels: { label: string; col: number }[] = []
@@ -95,19 +96,44 @@ export function HeatMap({ habits, checkIns }: HeatMapProps) {
             {cells.map((c, i) => {
               if (!c.date) return <div key={i} className="heatmap-cell-empty" />
               const { bg, glow } = c.pct >= 0 ? getCellColor(c.pct) : { bg: 'rgba(0,240,255,0.04)', glow: 'transparent' }
+              const d = c.date ? parseDate(c.date) : null
+              const tooltipText = d && c.date
+                ? `${formatNaturalShort(d)} ${formatWeekday(d)}\n${c.completed}/${c.total} 完成 · ${c.pct >= 0 ? c.pct + '%' : '无习惯'}`
+                : ''
               return (
                 <div
                   key={i}
                   className="heatmap-cell"
                   data-today={c.date === today ? 'true' : undefined}
                   style={{ '--cell-bg': bg, '--cell-glow': glow } as React.CSSProperties}
-                  title={c.label}
+                  onMouseEnter={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setTooltip({ x: rect.left + rect.width / 2, y: rect.top - 4, text: tooltipText })
+                  }}
+                  onMouseLeave={() => setTooltip(null)}
                 />
               )
             })}
           </div>
         </div>
       </div>
+
+      {tooltip && (
+        <div
+          className="heatmap-tooltip"
+          style={{
+            position: 'fixed',
+            left: tooltip.x,
+            top: tooltip.y,
+            transform: 'translate(-50%, -100%)',
+            pointerEvents: 'none',
+          }}
+        >
+          {tooltip.text.split('\n').map((line, i) => (
+            <div key={i}>{line}</div>
+          ))}
+        </div>
+      )}
 
       {/* legend */}
       <div className="heatmap-legend">

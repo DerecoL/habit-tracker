@@ -1,13 +1,15 @@
 import { useState, useRef } from 'react'
-import { STORAGE_HABITS, STORAGE_CHECKINS, STORAGE_MEMOS, STORAGE_DAILY_MOOD } from '../types'
+import { STORAGE_HABITS, STORAGE_CHECKINS, STORAGE_MEMOS, STORAGE_DAILY_MOOD, STORAGE_XP, STORAGE_BADGES, STORAGE_REWARDS, STORAGE_FREEZES } from '../types'
 
-const ALL_KEYS = [STORAGE_HABITS, STORAGE_CHECKINS, STORAGE_MEMOS, STORAGE_DAILY_MOOD] as const
+const ALL_KEYS = [STORAGE_HABITS, STORAGE_CHECKINS, STORAGE_MEMOS, STORAGE_DAILY_MOOD, STORAGE_XP, STORAGE_BADGES, STORAGE_REWARDS, STORAGE_FREEZES] as const
 
 interface DataManagerProps {
   onImported: () => void
+  habits?: { id: string; name: string; type: string }[]
+  checkIns?: { habitId: string; date: string; status?: string; note?: string }[]
 }
 
-export function DataManager({ onImported }: DataManagerProps) {
+export function DataManager({ onImported, habits, checkIns }: DataManagerProps) {
   const [importStatus, setImportStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [statusMsg, setStatusMsg] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
@@ -45,6 +47,10 @@ export function DataManager({ onImported }: DataManagerProps) {
           [STORAGE_CHECKINS]: v => Array.isArray(v),
           [STORAGE_MEMOS]: v => typeof v === 'object' && v !== null && !Array.isArray(v),
           [STORAGE_DAILY_MOOD]: v => typeof v === 'object' && v !== null && !Array.isArray(v),
+          [STORAGE_XP]: v => typeof v === 'object' && v !== null,
+          [STORAGE_BADGES]: v => Array.isArray(v),
+          [STORAGE_REWARDS]: v => Array.isArray(v),
+          [STORAGE_FREEZES]: v => typeof v === 'object' && v !== null,
         }
         let restored = 0
         for (const key of ALL_KEYS) {
@@ -76,8 +82,23 @@ export function DataManager({ onImported }: DataManagerProps) {
       <p className="memo-hint">导出数据作为备份，或从备份文件恢复数据（导入会覆盖当前数据）</p>
       <div className="data-manager-actions">
         <button type="button" className="btn btn-primary btn-sm" onClick={handleExport}>
-          导出数据
+          导出 JSON
         </button>
+        {habits && checkIns && (
+          <button type="button" className="btn btn-sm btn-ghost" onClick={() => {
+            const nameMap = new Map(habits.map(h => [h.id, h.name]))
+            const rows = [['日期', '习惯', '类型', '状态', '备注'].join(',')]
+            for (const c of checkIns) {
+              rows.push([c.date, nameMap.get(c.habitId) ?? c.habitId, habits.find(h => h.id === c.habitId)?.type ?? '', c.status ?? 'done', `"${(c.note ?? '').replace(/"/g, '""')}"`].join(','))
+            }
+            const bom = '\uFEFF'
+            const blob = new Blob([bom + rows.join('\n')], { type: 'text/csv;charset=utf-8' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url; a.download = `habit-tracker-${new Date().toISOString().slice(0, 10)}.csv`; a.click()
+            URL.revokeObjectURL(url)
+          }}>导出 CSV</button>
+        )}
         <label className={`btn btn-sm btn-ghost data-import-btn ${importStatus === 'loading' ? 'disabled' : ''}`}>
           {importStatus === 'loading' ? '导入中…' : '导入数据'}
           <input

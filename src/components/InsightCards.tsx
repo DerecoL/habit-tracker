@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { Habit, CheckIn } from '../types'
 import { dateRange } from '../dateUtils'
-import { dailyHabits, getDayStats, specialHabits, getSpecialCountInRange } from '../stats'
+import { dailyHabits, getDayStats, getWeekStats, getMonthStats, specialHabits, getSpecialCountInRange } from '../stats'
 
 const WEEKDAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
@@ -99,6 +99,50 @@ export function InsightCards({ habits, checkIns, getMood }: InsightCardsProps) {
     return { bestDay, worstDay, moodCorrelation, specialGoals }
   }, [habits, checkIns, getMood])
 
+  const { successPrediction, periodComparison } = useMemo(() => {
+    const daily = dailyHabits(habits)
+    if (daily.length === 0) {
+      return { successPrediction: null, periodComparison: null }
+    }
+    const now = new Date()
+
+    // C4: Success Rate Prediction - last 30 days, simple linear regression / moving average
+    const predStart = new Date(now)
+    predStart.setDate(predStart.getDate() - 29)
+    predStart.setHours(0, 0, 0, 0)
+    const predDates = dateRange(predStart, now)
+    const rates = predDates
+      .map(d => getDayStats(habits, checkIns, d))
+      .filter(s => s.total > 0)
+      .map(s => s.percent)
+    let successPrediction: { rate: number; trend: 'up' | 'down' } | null = null
+    if (rates.length >= 7) {
+      const last7 = rates.slice(-7)
+      const prev7 = rates.length >= 14 ? rates.slice(-14, -7) : rates.slice(0, -7)
+      const avgLast7 = Math.round(last7.reduce((a, b) => a + b, 0) / last7.length)
+      const avgPrev7 = prev7.length > 0 ? prev7.reduce((a, b) => a + b, 0) / prev7.length : avgLast7
+      const trend = avgLast7 >= avgPrev7 ? 'up' : 'down'
+      successPrediction = { rate: avgLast7, trend }
+    }
+
+    // C5: Period Comparison - this vs last week, this vs last month
+    const thisWeek = getWeekStats(habits, checkIns, now)
+    const lastWeekDate = new Date(now)
+    lastWeekDate.setDate(lastWeekDate.getDate() - 7)
+    const lastWeek = getWeekStats(habits, checkIns, lastWeekDate)
+    const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 15)
+    const lastMonth = getMonthStats(habits, checkIns, lastMonthDate)
+    const thisMonth = getMonthStats(habits, checkIns, now)
+    const weekDelta = thisWeek.percent - lastWeek.percent
+    const monthDelta = thisMonth.percent - lastMonth.percent
+    const periodComparison =
+      (thisWeek.total > 0 || lastWeek.total > 0 || thisMonth.total > 0 || lastMonth.total > 0)
+        ? { weekDelta, monthDelta }
+        : null
+
+    return { successPrediction, periodComparison }
+  }, [habits, checkIns])
+
   const daily = dailyHabits(habits)
   if (daily.length === 0 && specialGoals.length === 0) return null
 
@@ -125,6 +169,40 @@ export function InsightCards({ habits, checkIns, getMood }: InsightCardsProps) {
             <h4>心情 × 完成率</h4>
             <p className="insight-tag">{moodCorrelation.direction}</p>
             <p className="insight-detail">{moodCorrelation.detail}</p>
+          </div>
+        )}
+
+        {successPrediction && (
+          <div className="insight-card">
+            <span className="insight-card-icon">📈</span>
+            <h4>预测未来7天完成率</h4>
+            <p
+              className="insight-highlight"
+              style={{ color: successPrediction.trend === 'up' ? 'var(--color-success, #10b981)' : 'var(--color-warning, #f59e0b)' }}
+            >
+              预测未来7天完成率: {successPrediction.rate}%
+            </p>
+          </div>
+        )}
+
+        {periodComparison && (
+          <div className="insight-card">
+            <span className="insight-card-icon">📅</span>
+            <h4>周期对比</h4>
+            <div className="insight-detail">
+              <p>
+                本周 vs 上周:{' '}
+                <span style={{ color: periodComparison.weekDelta >= 0 ? 'var(--color-success, #10b981)' : 'var(--color-warning, #f59e0b)' }}>
+                  {periodComparison.weekDelta >= 0 ? '↑' : '↓'} {Math.abs(periodComparison.weekDelta)}%
+                </span>
+              </p>
+              <p>
+                本月 vs 上月:{' '}
+                <span style={{ color: periodComparison.monthDelta >= 0 ? 'var(--color-success, #10b981)' : 'var(--color-warning, #f59e0b)' }}>
+                  {periodComparison.monthDelta >= 0 ? '↑' : '↓'} {Math.abs(periodComparison.monthDelta)}%
+                </span>
+              </p>
+            </div>
           </div>
         )}
 

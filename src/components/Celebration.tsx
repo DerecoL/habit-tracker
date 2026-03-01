@@ -26,10 +26,12 @@ function makeParticles() {
 interface CelebrationProps {
   habits: Habit[]
   checkIns: CheckIn[]
+  milestone?: { type: string; message: string } | null
 }
 
-export function Celebration({ habits, checkIns }: CelebrationProps) {
+export function Celebration({ habits, checkIns, milestone }: CelebrationProps) {
   const [show, setShow] = useState(false)
+  const [display, setDisplay] = useState<{ title: string; sub: string } | null>(null)
   const today = todayStr()
 
   const basicCount = useMemo(() => basicHabits(habits).length, [habits])
@@ -37,16 +39,33 @@ export function Celebration({ habits, checkIns }: CelebrationProps) {
   const isAllClear = basicCount > 0 && basicDay.completed === basicDay.total
 
   useEffect(() => {
-    if (!isAllClear) return
-    const celebrated = sessionStorage.getItem(CELEB_KEY)
-    if (celebrated === today) return
-    sessionStorage.setItem(CELEB_KEY, today)
-    setShow(true)
-    const timer = setTimeout(() => setShow(false), 3200)
-    return () => clearTimeout(timer)
-  }, [isAllClear, today])
+    if (milestone) {
+      setDisplay({ title: milestone.type, sub: milestone.message })
+      setShow(true)
+      const timer = setTimeout(() => {
+        setShow(false)
+        setDisplay(null)
+      }, 3200)
+      return () => clearTimeout(timer)
+    }
+  }, [milestone])
 
-  if (!show) return null
+  useEffect(() => {
+    if (!milestone && isAllClear) {
+      const celebrated = sessionStorage.getItem(CELEB_KEY)
+      if (celebrated === today) return
+      sessionStorage.setItem(CELEB_KEY, today)
+      setDisplay({ title: 'ALL CLEAR', sub: '今日全勤！' })
+      setShow(true)
+      const timer = setTimeout(() => {
+        setShow(false)
+        setDisplay(null)
+      }, 3200)
+      return () => clearTimeout(timer)
+    }
+  }, [milestone, isAllClear, today])
+
+  if (!show || !display) return null
 
   const particles = makeParticles()
 
@@ -72,8 +91,8 @@ export function Celebration({ habits, checkIns }: CelebrationProps) {
         />
       ))}
       <div className="celebration-banner">
-        <div className="celebration-title">ALL CLEAR</div>
-        <span className="celebration-sub">今日全勤！</span>
+        <div className="celebration-title">{display.title}</div>
+        <span className="celebration-sub">{display.sub}</span>
       </div>
     </div>
   )

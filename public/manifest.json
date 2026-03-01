@@ -15,5 +15,19 @@
       "type": "image/svg+xml",
       "purpose": "any"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "今日打卡",
+      "short_name": "打卡",
+      "url": "/?tab=daily",
+      "description": "快速进入打卡页面"
+    },
+    {
+      "name": "查看总览",
+      "short_name": "总览",
+      "url": "/?tab=overview",
+      "description": "查看习惯总览"
+    }
   ]
 }

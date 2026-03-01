@@ -23,6 +23,11 @@ import { MoodTrendChart } from './MoodTrendChart'
 import { HeatMap } from './HeatMap'
 import { InsightCards } from './InsightCards'
 import { Report } from './Report'
+import { CalendarView } from './CalendarView'
+import { WeeklySummary } from './WeeklySummary'
+import type { FreezeState } from '../types'
+import { getLevelInfo } from '../types'
+import { ProgressRing } from './ProgressRing'
 
 interface DashboardProps {
   habits: Habit[]
@@ -31,6 +36,9 @@ interface DashboardProps {
   isCheckedIn: (habitId: string, date: string) => boolean
   toggleCheckIn: (habitId: string, date: string) => void
   onGoManage?: () => void
+  xp?: number
+  unlockedBadgeIds?: string[]
+  freezes?: FreezeState
 }
 
 function TypeBar({ label, stat, variant }: {
@@ -56,7 +64,7 @@ function TypeBar({ label, stat, variant }: {
   )
 }
 
-export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckIn, onGoManage }: DashboardProps) {
+export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckIn, onGoManage, xp = 0, freezes }: DashboardProps) {
   const today = todayStr()
   const todayDate = new Date()
 
@@ -129,8 +137,43 @@ export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckI
       <h2 className="panel-title">SYS_OVERVIEW // 完成总览</h2>
       <p className="panel-desc">基础习惯与进阶习惯分别展示完成率，特殊习惯看周期内执行次数</p>
 
+      {/* XP & Freeze quick status */}
+      <div className="dashboard-status-bar">
+        {(() => { const info = getLevelInfo(xp); return (
+          <span className="status-chip status-chip-xp">Lv.{info.level} {info.name} · {xp} XP</span>
+        ) })()}
+        {freezes && <span className="status-chip status-chip-freeze">❄ 冻结保护 ×{freezes.remaining}</span>}
+      </div>
+
       {dailyCount > 0 && (
         <>
+          {/* ── Hero: Today's Progress Ring ── */}
+          <div className="dashboard-hero">
+            <ProgressRing
+              percent={day.percent}
+              size={140}
+              stroke={8}
+              label={`${day.percent}%`}
+              sublabel="今日完成率"
+            />
+            <div className="dashboard-hero-info">
+              <div className="hero-stat">
+                <span className="hero-stat-value">{day.completed}</span>
+                <span className="hero-stat-label">已完成</span>
+              </div>
+              <div className="hero-stat-divider" />
+              <div className="hero-stat">
+                <span className="hero-stat-value">{day.total}</span>
+                <span className="hero-stat-label">今日应打</span>
+              </div>
+              <div className="hero-stat-divider" />
+              <div className="hero-stat">
+                <span className="hero-stat-value">{getOverallStreak(habits, checkIns)}</span>
+                <span className="hero-stat-label">连续天数</span>
+              </div>
+            </div>
+          </div>
+
           {/* ── Streak Banner ── */}
           <div className="streak-banner">
             <div className="streak-item streak-item-main">
@@ -307,6 +350,10 @@ export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckI
       <HeatMap habits={habits} checkIns={checkIns} />
 
       <MoodTrendChart getMood={getMood} days={14} />
+
+      <WeeklySummary habits={habits} checkIns={checkIns} getMood={getMood} />
+
+      <CalendarView habits={habits} checkIns={checkIns} />
 
       <Report habits={habits} checkIns={checkIns} getMood={getMood} />
 

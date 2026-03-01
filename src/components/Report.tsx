@@ -52,14 +52,16 @@ export function Report({ habits, checkIns, getMood }: ReportProps) {
     }, 0)
 
     const topHabits = daily.map(h => ({
-      name: h.name, color: h.color,
+      id: h.id, name: h.name, color: h.color, icon: h.icon,
       streak: getHabitStreak(h.id, checkIns),
     })).sort((a, b) => b.streak - a.streak).slice(0, 3)
 
     const specialTotals = special.map(h => ({
-      name: h.name, color: h.color,
+      id: h.id, name: h.name, color: h.color, icon: h.icon,
       count: getSpecialCountInRange(h.id, checkIns, dates),
     }))
+
+    const skipCount = checkIns.filter(c => c.status === 'skip' && dates.includes(c.date)).length
 
     const label = type === 'month'
       ? `${now.getFullYear()}年${now.getMonth() + 1}月`
@@ -67,7 +69,7 @@ export function Report({ habits, checkIns, getMood }: ReportProps) {
 
     return {
       label, dates: dates.length, overallRate, perfectDays,
-      totalDone, avgMood, bestWeekday: WEEKDAY_NAMES[bestWeekday],
+      totalDone, skipCount, avgMood, bestWeekday: WEEKDAY_NAMES[bestWeekday],
       topHabits, specialTotals,
       overallStreak: getOverallStreak(habits, checkIns),
     }
@@ -116,6 +118,12 @@ export function Report({ habits, checkIns, getMood }: ReportProps) {
             <span className="report-stat-value">{data.totalDone}</span>
             <span className="report-stat-label">总打卡次数</span>
           </div>
+          {data.skipCount > 0 && (
+            <div className="report-stat">
+              <span className="report-stat-value">{data.skipCount}</span>
+              <span className="report-stat-label">跳过次数</span>
+            </div>
+          )}
         </div>
 
         {data.topHabits.length > 0 && (
@@ -123,9 +131,9 @@ export function Report({ habits, checkIns, getMood }: ReportProps) {
             <h5>坚持最久的习惯</h5>
             <div className="report-habit-chips">
               {data.topHabits.map(h => (
-                <span key={h.name} className="report-habit-chip" style={{ borderColor: h.color }}>
+                <span key={h.id} className="report-habit-chip" style={{ borderColor: h.color }}>
                   <span className="report-habit-dot" style={{ background: h.color }} />
-                  {h.name} · {h.streak}天
+                  {h.icon ? `${h.icon} ` : ''}{h.name} · {h.streak}天
                 </span>
               ))}
             </div>
@@ -137,9 +145,9 @@ export function Report({ habits, checkIns, getMood }: ReportProps) {
             <h5>特殊习惯执行</h5>
             <div className="report-habit-chips">
               {data.specialTotals.map(h => (
-                <span key={h.name} className="report-habit-chip" style={{ borderColor: h.color }}>
+                <span key={h.id} className="report-habit-chip" style={{ borderColor: h.color }}>
                   <span className="report-habit-dot" style={{ background: h.color }} />
-                  {h.name} · {h.count}次
+                  {h.icon ? `${h.icon} ` : ''}{h.name} · {h.count}次
                 </span>
               ))}
             </div>

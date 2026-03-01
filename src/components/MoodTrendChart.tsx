@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { dateRange, parseDate, formatNaturalDate, formatWeekday } from '../dateUtils'
-import { MOOD_LABELS } from '../types'
+import { MOOD_LABELS, MOOD_EMOJIS } from '../types'
 
 interface MoodTrendChartProps {
   getMood: (date: string) => number
@@ -60,7 +60,7 @@ export function MoodTrendChart({ getMood, days = 14 }: MoodTrendChartProps) {
                 tick={{ fill: 'var(--chart-muted, #94a3b8)', fontSize: 11 }}
                 domain={[1, 5]}
                 ticks={[1, 2, 3, 4, 5]}
-                tickFormatter={v => MOOD_LABELS[v] ?? String(v)}
+                tickFormatter={v => MOOD_EMOJIS[v] ?? String(v)}
                 width={48}
               />
               <Tooltip
@@ -70,7 +70,7 @@ export function MoodTrendChart({ getMood, days = 14 }: MoodTrendChartProps) {
                   borderRadius: '8px',
                 }}
                 labelStyle={{ color: 'var(--text, #f1f5f9)' }}
-                formatter={(value) => [value != null ? MOOD_LABELS[value as number] ?? value : '未记录', '开心程度']}
+                formatter={(value) => [value != null ? (MOOD_EMOJIS[value as number] ?? '') + ' ' + (MOOD_LABELS[value as number] ?? value) : '未记录', '开心程度']}
                 labelFormatter={label => {
                   try {
                     const d = parseDate(String(label))
