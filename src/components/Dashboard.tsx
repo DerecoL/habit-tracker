@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import {
   getDayStats,
+  getBasicDayStats,
   getWeekStats,
   getMonthStats,
   getYearStats,
@@ -60,7 +61,7 @@ export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckI
   const todayDate = new Date()
 
   const {
-    day, week, month, year,
+    day, basicDay, week, month, year,
     dayBasic, dayAdv,
     weekBasic, weekAdv, monthBasic, monthAdv, yearBasic, yearAdv,
     specialWeek, specialMonth, specialYear,
@@ -70,6 +71,7 @@ export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckI
   } = useMemo(() => {
     const now = new Date()
     const day = getDayStats(habits, checkIns, today)
+    const basicDay = getBasicDayStats(habits, checkIns, today)
     const week = getWeekStats(habits, checkIns, now)
     const month = getMonthStats(habits, checkIns, now)
     const year = getYearStats(habits, checkIns, now)
@@ -112,7 +114,7 @@ export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckI
     }))
 
     return {
-      day, week, month, year,
+      day, basicDay, week, month, year,
       dayBasic, dayAdv,
       weekBasic, weekAdv, monthBasic, monthAdv, yearBasic, yearAdv,
       specialWeek, specialMonth, specialYear,
@@ -199,8 +201,8 @@ export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckI
                   ))}
                 </div>
               )}
-              {day.total > 0 && day.completed === day.total && (
-                <div className="dcard-allclear">ALL CLEAR // 今日全勤</div>
+              {basicDay.total > 0 && basicDay.completed === basicDay.total && (
+                <div className="dcard-allclear">ALL CLEAR // 基础全勤</div>
               )}
             </div>
 

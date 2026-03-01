@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { todayStr } from '../dateUtils'
-import { getDayStats, dailyHabits } from '../stats'
+import { getBasicDayStats, basicHabits } from '../stats'
 import type { Habit, CheckIn } from '../types'
 
 const CELEB_KEY = 'habit-tracker-celebrated'
@@ -32,9 +32,9 @@ export function Celebration({ habits, checkIns }: CelebrationProps) {
   const [show, setShow] = useState(false)
   const today = todayStr()
 
-  const dailyCount = useMemo(() => dailyHabits(habits).length, [habits])
-  const dayStat = useMemo(() => getDayStats(habits, checkIns, today), [habits, checkIns, today])
-  const isAllClear = dailyCount > 0 && dayStat.completed === dayStat.total
+  const basicCount = useMemo(() => basicHabits(habits).length, [habits])
+  const basicDay = useMemo(() => getBasicDayStats(habits, checkIns, today), [habits, checkIns, today])
+  const isAllClear = basicCount > 0 && basicDay.completed === basicDay.total
 
   useEffect(() => {
     if (!isAllClear) return

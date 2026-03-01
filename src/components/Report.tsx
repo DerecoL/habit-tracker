@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef } from 'react'
 import type { Habit, CheckIn } from '../types'
 import { dateRange, getMonthRange, getYearRange } from '../dateUtils'
-import { dailyHabits, specialHabits, getDayStats, getSpecialCountInRange, getOverallStreak, getHabitStreak } from '../stats'
+import { dailyHabits, specialHabits, getDayStats, getBasicDayStats, getSpecialCountInRange, getOverallStreak, getHabitStreak } from '../stats'
 
 type ReportType = 'month' | 'year'
 
@@ -33,7 +33,8 @@ export function Report({ habits, checkIns, getMood }: ReportProps) {
       const stat = getDayStats(habits, checkIns, date)
       totalDone += stat.completed
       totalPossible += stat.total
-      if (stat.total > 0 && stat.completed === stat.total) perfectDays++
+      const bStat = getBasicDayStats(habits, checkIns, date)
+      if (bStat.total > 0 && bStat.completed === bStat.total) perfectDays++
       const wd = new Date(date + 'T00:00:00').getDay()
       weekdayDone[wd] += stat.completed
       weekdayTotal[wd] += stat.total

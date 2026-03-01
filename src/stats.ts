@@ -99,6 +99,23 @@ export function getDayStats(
 }
 
 /**
+ * 全勤判定专用：仅统计基础习惯的单日完成情况
+ */
+export function getBasicDayStats(
+  habits: Habit[],
+  checkIns: CheckIn[],
+  dayStr: string
+): PeriodStats {
+  const basics = basicHabits(habits)
+  const total = basics.length
+  if (total === 0) return { total: 0, completed: 0, percent: 0 }
+  const completed = basics.filter(h =>
+    checkIns.some(c => c.habitId === h.id && c.date === dayStr)
+  ).length
+  return { total, completed, percent: Math.round((completed / total) * 100) }
+}
+
+/**
  * 本周/本月/本年：仅统计每日类习惯，完成人天/总人天
  */
 export function getWeekStats(
@@ -313,17 +330,17 @@ export function getHabitStreak(habitId: string, checkIns: CheckIn[]): number {
 }
 
 /**
- * 计算整体连续全勤天数（所有每日类习惯都打卡的连续天数）
+ * 计算整体连续全勤天数（所有基础习惯都打卡的连续天数，全勤仅看基础习惯）
  */
 export function getOverallStreak(habits: Habit[], checkIns: CheckIn[]): number {
-  const daily = dailyHabits(habits)
-  if (daily.length === 0) return 0
+  const basics = basicHabits(habits)
+  if (basics.length === 0) return 0
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   let cur = new Date(today)
 
   const allDoneOn = (d: string) =>
-    daily.every(h => checkIns.some(c => c.habitId === h.id && c.date === d))
+    basics.every(h => checkIns.some(c => c.habitId === h.id && c.date === d))
 
   if (!allDoneOn(dateStr(cur))) {
     cur.setDate(cur.getDate() - 1)
