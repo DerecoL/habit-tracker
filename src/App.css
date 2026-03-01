@@ -52,24 +52,36 @@
 .logo {
   margin: 0 0 14px 0;
   font-family: var(--font-cyber);
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--neon-cyan);
-  text-shadow:
-    0 0 7px var(--neon-cyan-glow),
-    0 0 20px rgba(0, 240, 255, 0.15);
-  animation: neonFlicker 4s infinite;
+  background: linear-gradient(
+    135deg,
+    var(--neon-cyan) 0%,
+    #6cf 20%,
+    var(--neon-purple) 40%,
+    var(--neon-pink) 60%,
+    var(--neon-purple) 80%,
+    var(--neon-cyan) 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: textGradientFlow 8s ease infinite;
+  filter: drop-shadow(0 0 12px var(--neon-cyan-glow));
 }
 
 .logo-sub {
   font-family: var(--font);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 500;
   color: var(--text-dim);
-  text-shadow: none;
-  letter-spacing: 0;
+  -webkit-text-fill-color: var(--text-dim);
+  background: none;
+  filter: none;
+  letter-spacing: 0.02em;
   text-transform: none;
 }
 
@@ -125,13 +137,17 @@
 .panel-title {
   margin: 0 0 8px 0;
   font-family: var(--font-cyber);
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--neon-cyan);
-  text-shadow: 0 0 6px var(--neon-cyan-glow);
-  animation: fadeSlideDown 0.3s ease both;
+  background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-purple) 50%, var(--neon-pink) 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: fadeSlideDown 0.3s ease both, textGradientFlow 6s ease infinite;
+  filter: drop-shadow(0 0 8px var(--neon-cyan-glow));
 }
 
 .panel-desc {
@@ -314,10 +330,14 @@
   font-family: var(--font-cyber);
   font-size: 1.8rem;
   font-weight: 900;
-  color: var(--text);
   letter-spacing: -0.02em;
   line-height: 1;
   animation: numberPop 0.4s ease 0.2s both;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 8px var(--neon-cyan-glow));
 }
 
 .dcard-overall-detail {
@@ -537,16 +557,17 @@
 
 /* ═══ Streak Banner ═══ */
 .streak-banner {
-  padding: 22px 26px;
   margin-bottom: 20px;
   border-color: rgba(255, 45, 149, 0.12);
   background: linear-gradient(135deg, rgba(255, 45, 149, 0.04) 0%, rgba(181, 55, 242, 0.03) 50%, rgba(0, 240, 255, 0.04) 100%);
   animation: fadeSlideUp 0.4s ease both;
 }
 
-.streak-banner::before {
-  background: linear-gradient(90deg, transparent, var(--neon-pink), var(--neon-purple), var(--neon-cyan), transparent) !important;
-  opacity: 0.4 !important;
+.streak-banner > .glow-card-content {
+  padding: 22px 26px;
+}
+
+.streak-banner::before { content: none !important;
 }
 
 .streak-item-main {
@@ -564,13 +585,11 @@
 
 .streak-value {
   font-family: var(--font-cyber);
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   font-weight: 900;
-  color: var(--neon-pink);
-  text-shadow: 0 0 10px var(--neon-pink-glow);
   letter-spacing: -0.02em;
   line-height: 1;
-  animation: breathe 3s ease infinite;
+  filter: drop-shadow(0 0 12px var(--neon-pink-glow));
 }
 
 .streak-label {
@@ -3128,7 +3147,7 @@
    Mobile Card Spacing (美术D2)
    ═══════════════════════════════════ */
 @media (max-width: 600px) {
-  .dashboard-hero {
+  .dashboard-hero > .glow-card-content {
     flex-direction: column;
     gap: 20px;
     padding: 24px 20px;
@@ -3174,27 +3193,22 @@
   display: flex;
   align-items: center;
   gap: 32px;
-  padding: 28px 32px;
   margin-bottom: 24px;
   background: linear-gradient(135deg, rgba(0, 240, 255, 0.03) 0%, rgba(181, 55, 242, 0.03) 50%, rgba(255, 45, 149, 0.03) 100%);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
   animation: fadeSlideUp 0.5s ease both;
-  position: relative;
-  overflow: hidden;
 }
 
-.dashboard-hero::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 30px; right: 30px; height: 1px;
-  background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), transparent);
-  background-size: 200% 100%;
-  animation: gradientShift 4s ease infinite;
-  opacity: 0.4;
+.dashboard-hero > .glow-card-content {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 28px 32px;
 }
+
+.dashboard-hero::before { content: none; }
 
 .progress-ring {
   position: relative;
@@ -3213,11 +3227,15 @@
 
 .progress-ring-label {
   font-family: var(--font-cyber);
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   font-weight: 900;
-  color: var(--text);
   letter-spacing: -0.02em;
   line-height: 1;
+  background: linear-gradient(135deg, var(--neon-cyan), #fff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 6px var(--neon-cyan-glow));
 }
 
 .progress-ring-sublabel {
@@ -3244,11 +3262,15 @@
 
 .hero-stat-value {
   font-family: var(--font-cyber);
-  font-size: 1.8rem;
+  font-size: 2rem;
   font-weight: 900;
   color: var(--text);
   line-height: 1;
-  text-shadow: 0 0 12px rgba(0, 240, 255, 0.1);
+  text-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+}
+
+.hero-stat-value.gradient-text {
+  filter: drop-shadow(0 0 8px var(--neon-cyan-glow));
 }
 
 .hero-stat-label {
@@ -3329,7 +3351,9 @@
 [data-theme="light"] .calendar-view .cal-day-today { border-color: #0077cc; color: #0077cc; }
 [data-theme="light"] .dashboard-hero { background: linear-gradient(135deg, rgba(0,136,204,0.03) 0%, rgba(139,47,198,0.02) 50%, rgba(212,37,120,0.02) 100%); }
 [data-theme="light"] .hero-stat-value { text-shadow: none; color: #1a1a2e; }
-[data-theme="light"] .progress-ring-label { color: #1a1a2e; }
+[data-theme="light"] .progress-ring-label { background: linear-gradient(135deg, #0088cc, #1a1a2e); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: none; }
+[data-theme="light"] .dcard-overall-pct { background: linear-gradient(135deg, #0088cc, #8b2fc6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: none; }
+[data-theme="light"] .panel-title { background: linear-gradient(135deg, #0088cc, #8b2fc6, #d42578); background-size: 200% 200%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: none; }
 [data-theme="light"] .tabs { background: rgba(0,120,200,0.03); border-color: rgba(0,120,200,0.08); }
 [data-theme="light"] .tab.active { background: #0088cc; color: #fff; box-shadow: 0 2px 8px rgba(0,136,204,0.2); }
 [data-theme="light"] .tabs-nav-bottom { background: rgba(255,255,255,0.92); }
