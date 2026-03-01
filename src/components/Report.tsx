@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef } from 'react'
 import type { Habit, CheckIn } from '../types'
 import { dateRange, getMonthRange, getYearRange } from '../dateUtils'
-import { dailyHabits, specialHabits, getDayStats, getBasicDayStats, getSpecialCountInRange, getOverallStreak, getHabitStreak } from '../stats'
+import { dailyHabits, specialHabits, getDayStats, getBasicDayStats, isPerfectDay, getSpecialCountInRange, getOverallStreak, getHabitStreak } from '../stats'
 
 type ReportType = 'month' | 'year'
 
@@ -24,7 +24,7 @@ export function Report({ habits, checkIns, getMood }: ReportProps) {
     const daily = dailyHabits(habits)
     const special = specialHabits(habits)
 
-    let totalDone = 0, totalPossible = 0, perfectDays = 0
+    let totalDone = 0, totalPossible = 0, fullAttendDays = 0, perfectDayCount = 0
     const weekdayDone = Array(7).fill(0)
     const weekdayTotal = Array(7).fill(0)
     let moodSum = 0, moodCount = 0
@@ -34,7 +34,8 @@ export function Report({ habits, checkIns, getMood }: ReportProps) {
       totalDone += stat.completed
       totalPossible += stat.total
       const bStat = getBasicDayStats(habits, checkIns, date)
-      if (bStat.total > 0 && bStat.completed === bStat.total) perfectDays++
+      if (bStat.total > 0 && bStat.completed === bStat.total) fullAttendDays++
+      if (isPerfectDay(habits, checkIns, date)) perfectDayCount++
       const wd = new Date(date + 'T00:00:00').getDay()
       weekdayDone[wd] += stat.completed
       weekdayTotal[wd] += stat.total
@@ -68,7 +69,7 @@ export function Report({ habits, checkIns, getMood }: ReportProps) {
       : `${now.getFullYear()}年度`
 
     return {
-      label, dates: dates.length, overallRate, perfectDays,
+      label, dates: dates.length, overallRate, fullAttendDays, perfectDayCount,
       totalDone, skipCount, avgMood, bestWeekday: WEEKDAY_NAMES[bestWeekday],
       topHabits, specialTotals,
       overallStreak: getOverallStreak(habits, checkIns),
@@ -99,8 +100,12 @@ export function Report({ habits, checkIns, getMood }: ReportProps) {
             <span className="report-stat-label">总完成率</span>
           </div>
           <div className="report-stat">
-            <span className="report-stat-value">{data.perfectDays}</span>
+            <span className="report-stat-value">{data.fullAttendDays}</span>
             <span className="report-stat-label">全勤天数</span>
+          </div>
+          <div className="report-stat">
+            <span className="report-stat-value report-stat-perfect">{data.perfectDayCount}</span>
+            <span className="report-stat-label">完美天数</span>
           </div>
           <div className="report-stat">
             <span className="report-stat-value">{data.overallStreak}</span>

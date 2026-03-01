@@ -117,6 +117,23 @@ export function getBasicDayStats(
 }
 
 /**
+ * 完美一天判定：基础+进阶习惯全部完成
+ */
+export function isPerfectDay(
+  habits: Habit[],
+  checkIns: CheckIn[],
+  dayStr: string
+): boolean {
+  const basic = basicHabits(habits).filter(h => isHabitDueOn(h, dayStr))
+  const adv = advancedHabits(habits).filter(h => isHabitDueOn(h, dayStr))
+  const all = [...basic, ...adv]
+  if (all.length === 0) return false
+  return all.every(h =>
+    checkIns.some(c => c.habitId === h.id && c.date === dayStr && c.status !== 'skip')
+  )
+}
+
+/**
  * 本周/本月/本年：仅统计每日类习惯，完成人天/总人天
  */
 function frequencyAwarePeriodStats(habits: Habit[], checkIns: CheckIn[], dates: string[]): PeriodStats {

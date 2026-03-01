@@ -2120,6 +2120,16 @@
   --glow-color: var(--neon-cyan-glow);
 }
 
+.celebration-perfect .celebration-title {
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 215, 0, 0.25);
+  --glow-color: rgba(255, 215, 0, 0.4);
+}
+.celebration-perfect .celebration-sub {
+  color: #ff6b00;
+  text-shadow: 0 0 12px rgba(255, 107, 0, 0.5);
+}
+
 .celebration-sub {
   display: block;
   font-size: 1rem;
@@ -2204,21 +2214,31 @@
   box-shadow: 0 0 8px color-mix(in srgb, var(--habit-color) 20%, transparent);
 }
 
-.dcard-allclear {
+.dcard-allclear,
+.dcard-perfect {
   margin-top: 12px;
   text-align: center;
   font-family: var(--font-cyber);
   font-size: 0.72rem;
-  color: var(--neon-green);
   letter-spacing: 2px;
-  text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
   padding: 6px 16px;
-  background: rgba(57, 255, 20, 0.06);
-  border: 1px solid rgba(57, 255, 20, 0.15);
   border-radius: var(--radius-pill);
   display: inline-block;
   animation: glowPulse 1.5s ease infinite, popIn 0.5s ease both;
+}
+.dcard-allclear {
+  color: var(--neon-green);
+  text-shadow: 0 0 10px rgba(57, 255, 20, 0.4);
+  background: rgba(57, 255, 20, 0.06);
+  border: 1px solid rgba(57, 255, 20, 0.15);
   --glow-color: rgba(57, 255, 20, 0.3);
+}
+.dcard-perfect {
+  color: #ffd700;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(255, 45, 149, 0.06));
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  --glow-color: rgba(255, 215, 0, 0.35);
 }
 
 /* ═══ Empty State ═══ */
@@ -3010,6 +3030,12 @@
   font-family: var(--font-cyber);
 }
 
+.report-stat-perfect,
+.ws-stat-perfect {
+  color: #ffd700 !important;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
 .report-stat-label {
   display: block;
   font-size: 0.7rem;
@@ -3199,10 +3225,18 @@
 .cal-day:hover { border-color: var(--border-glow); transform: scale(1.05); }
 .cal-day-today { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 8px var(--neon-cyan-glow); }
 .cal-day-full { background: var(--accent-soft); border-color: var(--border-glow); box-shadow: 0 0 6px var(--neon-cyan-glow); }
+.cal-day-perfect { background: rgba(255, 215, 0, 0.1); border-color: rgba(255, 215, 0, 0.35); box-shadow: 0 0 8px rgba(255, 215, 0, 0.2); }
+.cal-day-perfect .cal-day-num { color: #ffd700; }
 .cal-day-empty { border-color: transparent; }
 .cal-day-num { font-size: 0.7rem; }
 .cal-day-dots { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; max-width: 30px; }
 .cal-day-dot { width: 4px; height: 4px; border-radius: 50%; }
+
+.cal-legend { display: flex; gap: 16px; justify-content: center; margin-top: 10px; font-size: 0.72rem; color: var(--text-dim); }
+.cal-legend-item { display: flex; align-items: center; gap: 4px; }
+.cal-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+.cal-legend-full { background: var(--accent-soft); border: 1px solid var(--border-glow); }
+.cal-legend-perfect { background: rgba(255, 215, 0, 0.15); border: 1px solid rgba(255, 215, 0, 0.35); }
 
 /* ═══════════════════════════════════
    Habit Timer (C2)
@@ -3489,6 +3523,8 @@
 [data-theme="light"] .habit-timer { background: rgba(255,255,255,0.85); border-color: #d0d7de; }
 [data-theme="light"] .weekly-summary { background: rgba(255,255,255,0.85); border-color: #d0d7de; }
 [data-theme="light"] .calendar-view .cal-day-full { background: rgba(0,120,200,0.08); box-shadow: none; }
+[data-theme="light"] .calendar-view .cal-day-perfect { background: rgba(255, 180, 0, 0.1); border-color: rgba(255, 180, 0, 0.3); box-shadow: none; }
+[data-theme="light"] .dcard-perfect { color: #d4900a; text-shadow: none; background: rgba(255, 180, 0, 0.08); border-color: rgba(255, 180, 0, 0.25); }
 [data-theme="light"] .calendar-view .cal-day-today { border-color: #0077cc; color: #0077cc; }
 [data-theme="light"] .dashboard-hero { background: linear-gradient(135deg, rgba(0,136,204,0.03) 0%, rgba(139,47,198,0.02) 50%, rgba(212,37,120,0.02) 100%); }
 [data-theme="light"] .hero-stat-value { text-shadow: none; color: #1a1a2e; }

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import {
   getDayStats,
   getBasicDayStats,
+  isPerfectDay,
   getWeekStats,
   getMonthStats,
   getYearStats,
@@ -124,6 +125,9 @@ export function Dashboard({ habits: rawHabits, checkIns: rawCheckIns, getMood, i
       ...h, streak: getHabitStreak(h.id, checkIns)
     }))
 
+    const isFullAttendance = basicDay.total > 0 && basicDay.completed === basicDay.total
+    const isPerfect = isPerfectDay(habits, checkIns, today)
+
     return {
       day, basicDay, week, month, year,
       dayBasic, dayAdv,
@@ -132,6 +136,7 @@ export function Dashboard({ habits: rawHabits, checkIns: rawCheckIns, getMood, i
       dailyCount, hasBasic, hasAdvanced, hasSpecial,
       weekRangeStr, monthRangeStr, yearRangeStr,
       basicStreaks, advStreaks,
+      isFullAttendance, isPerfect,
     }
   }, [habits, checkIns, today])
 
@@ -247,9 +252,11 @@ export function Dashboard({ habits: rawHabits, checkIns: rawCheckIns, getMood, i
                   ))}
                 </div>
               )}
-              {basicDay.total > 0 && basicDay.completed === basicDay.total && (
-                <div className="dcard-allclear">ALL CLEAR // 基础全勤</div>
-              )}
+              {isPerfect ? (
+                <div className="dcard-perfect">★ PERFECT DAY // 完美一天</div>
+              ) : isFullAttendance ? (
+                <div className="dcard-allclear">✓ ALL CLEAR // 基础全勤</div>
+              ) : null}
             </div>
 
             {/* 本周 */}

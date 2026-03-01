@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Habit, CheckIn } from '../types'
-import { getBasicDayStats } from '../stats'
+import { getBasicDayStats, isPerfectDay } from '../stats'
 import { parseDate, getMonthRange, dateRange, dateStr } from '../dateUtils'
 
 interface CalendarViewProps {
@@ -14,7 +14,7 @@ export function CalendarView({ habits, checkIns }: CalendarViewProps) {
   const [month, setMonth] = useState(() => new Date())
   const todayStr = useMemo(() => dateStr(new Date()), [month])
 
-  const { grid, completedHabitsByDay, fullAttendanceDays } = useMemo(() => {
+  const { grid, completedHabitsByDay, fullAttendanceDays, perfectDays } = useMemo(() => {
     const { start, end } = getMonthRange(month)
     const dates = dateRange(start, end)
     let firstDay = start.getDay()
@@ -35,12 +35,14 @@ export function CalendarView({ habits, checkIns }: CalendarViewProps) {
     }
 
     const fullAttendanceDays = new Set<string>()
+    const perfectDays = new Set<string>()
     for (const d of dates) {
       const s = getBasicDayStats(habits, checkIns, d)
       if (s.total > 0 && s.completed === s.total) fullAttendanceDays.add(d)
+      if (isPerfectDay(habits, checkIns, d)) perfectDays.add(d)
     }
 
-    return { grid: cells, completedHabitsByDay, fullAttendanceDays }
+    return { grid: cells, completedHabitsByDay, fullAttendanceDays, perfectDays }
   }, [month, habits, checkIns])
 
   const prevMonth = () => setMonth(m => { const n = new Date(m); n.setMonth(n.getMonth() - 1); return n })
@@ -61,10 +63,11 @@ export function CalendarView({ habits, checkIns }: CalendarViewProps) {
         {grid.map((d, i) => {
           if (!d) return <div key={`p${i}`} className="cal-day cal-day-empty" />
           const dots = completedHabitsByDay[d] ?? []
+          const isPerfect = perfectDays.has(d)
           const isFull = fullAttendanceDays.has(d)
           const isToday = d === todayStr
           return (
-            <div key={d} className={`cal-day${isFull ? ' cal-day-full' : ''}${isToday ? ' cal-day-today' : ''}`}>
+            <div key={d} className={`cal-day${isPerfect ? ' cal-day-perfect' : isFull ? ' cal-day-full' : ''}${isToday ? ' cal-day-today' : ''}`}>
               <span className="cal-day-num">{parseDate(d).getDate()}</span>
               <div className="cal-day-dots">
                 {dots.slice(0, 5).map((c, j) => <span key={j} className="cal-day-dot" style={{ background: c }} />)}
@@ -72,6 +75,10 @@ export function CalendarView({ habits, checkIns }: CalendarViewProps) {
             </div>
           )
         })}
+      </div>
+      <div className="cal-legend">
+        <span className="cal-legend-item"><span className="cal-legend-dot cal-legend-full" />全勤</span>
+        <span className="cal-legend-item"><span className="cal-legend-dot cal-legend-perfect" />完美</span>
       </div>
     </div>
   )

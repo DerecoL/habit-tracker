@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { Habit, CheckIn } from '../types'
 import { dateRange, getWeekRange } from '../dateUtils'
-import { getDayStats, basicHabits } from '../stats'
+import { getDayStats, getBasicDayStats, isPerfectDay, basicHabits } from '../stats'
 
 interface WeeklySummaryProps {
   habits: Habit[]
@@ -23,6 +23,7 @@ export function WeeklySummary({ habits, checkIns, getMood }: WeeklySummaryProps)
     let totalSlots = 0
     let completed = 0
     const moodSum: number[] = []
+    let fullAttendDays = 0
     let perfectDays = 0
     let bestDay = ''
     let worstDay = ''
@@ -36,7 +37,9 @@ export function WeeklySummary({ habits, checkIns, getMood }: WeeklySummaryProps)
       if (s.total > 0) {
         const m = getMood(d)
         if (m >= 1 && m <= 5) moodSum.push(m)
-        if (s.completed === s.total) perfectDays++
+        const bs = getBasicDayStats(habits, checkIns, d)
+        if (bs.total > 0 && bs.completed === bs.total) fullAttendDays++
+        if (isPerfectDay(habits, checkIns, d)) perfectDays++
         if (s.percent > bestPercent) {
           bestPercent = s.percent
           bestDay = d
@@ -60,6 +63,7 @@ export function WeeklySummary({ habits, checkIns, getMood }: WeeklySummaryProps)
 
     return {
       completionRate,
+      fullAttendDays,
       perfectDays,
       moodAvg,
       bestDay,
@@ -80,7 +84,11 @@ export function WeeklySummary({ habits, checkIns, getMood }: WeeklySummaryProps)
         </div>
         <div className="ws-stat">
           <span className="ws-stat-label">全勤天数</span>
-          <span className="ws-stat-value">{data.perfectDays}</span>
+          <span className="ws-stat-value">{data.fullAttendDays}</span>
+        </div>
+        <div className="ws-stat">
+          <span className="ws-stat-label">完美天数</span>
+          <span className="ws-stat-value ws-stat-perfect">{data.perfectDays}</span>
         </div>
         {data.moodAvg != null && (
           <div className="ws-stat">
