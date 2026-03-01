@@ -1,7 +1,6 @@
 import { createContext, useContext, useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { ref, get, set, onValue, serverTimestamp } from 'firebase/database'
 import { rtdb } from './firebase'
-import { useAuth } from './AuthContext'
 import {
   STORAGE_HABITS, STORAGE_CHECKINS, STORAGE_MEMOS, STORAGE_DAILY_MOOD,
   STORAGE_XP, STORAGE_BADGES, STORAGE_REWARDS, STORAGE_FREEZES,
@@ -34,6 +33,8 @@ const DEFAULTS: Record<SyncKey, unknown> = {
   freezes: { remaining: 2, usedDates: [] },
 }
 
+const SYNC_CODE_STORAGE = 'habit-tracker-sync-code'
+
 function loadLocal(key: SyncKey): unknown {
   try {
     const raw = localStorage.getItem(LOCAL_KEY_MAP[key])
@@ -44,6 +45,17 @@ function loadLocal(key: SyncKey): unknown {
 
 function saveLocal(key: SyncKey, value: unknown): void {
   localStorage.setItem(LOCAL_KEY_MAP[key], JSON.stringify(value))
+}
+
+/* --------------- sync code --------------- */
+
+export function generateSyncCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  const arr = new Uint8Array(8)
+  crypto.getRandomValues(arr)
+  let code = ''
+  for (let i = 0; i < 8; i++) code += chars[arr[i] % chars.length]
+  return code
 }
 
 /* --------------- merge strategies --------------- */
@@ -87,12 +99,18 @@ interface SyncCtx {
   syncToCloud: (key: SyncKey, value: unknown) => void
   subscribe: (key: SyncKey, setter: (value: any) => void) => () => void
   syncStatus: 'idle' | 'syncing' | 'synced' | 'error'
+  syncCode: string | null
+  connect: (code: string) => void
+  disconnect: () => void
 }
 
 const SyncContext = createContext<SyncCtx>({
   syncToCloud: () => {},
   subscribe: () => () => {},
   syncStatus: 'idle',
+  syncCode: null,
+  connect: () => {},
+  disconnect: () => {},
 })
 
 export function useSync() {
@@ -100,15 +118,29 @@ export function useSync() {
 }
 
 export function SyncProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
-  const userRef = useRef(user)
+  const [syncCode, setSyncCode] = useState<string | null>(
+    () => localStorage.getItem(SYNC_CODE_STORAGE)
+  )
+  const codeRef = useRef(syncCode)
   const readyRef = useRef(false)
   const settersRef = useRef(new Map<SyncKey, Set<(v: any) => void>>())
   const unsubsRef = useRef<(() => void)[]>([])
   const debounceRef = useRef(new Map<SyncKey, ReturnType<typeof setTimeout>>())
   const [syncStatus, setSyncStatus] = useState<SyncCtx['syncStatus']>('idle')
 
-  useEffect(() => { userRef.current = user }, [user])
+  useEffect(() => { codeRef.current = syncCode }, [syncCode])
+
+  const connect = useCallback((code: string) => {
+    const trimmed = code.trim().toUpperCase()
+    if (!trimmed) return
+    localStorage.setItem(SYNC_CODE_STORAGE, trimmed)
+    setSyncCode(trimmed)
+  }, [])
+
+  const disconnect = useCallback(() => {
+    localStorage.removeItem(SYNC_CODE_STORAGE)
+    setSyncCode(null)
+  }, [])
 
   const subscribe = useCallback((key: SyncKey, setter: (v: any) => void) => {
     if (!settersRef.current.has(key)) settersRef.current.set(key, new Set())
@@ -117,15 +149,15 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const syncToCloud = useCallback((key: SyncKey, value: unknown) => {
-    const u = userRef.current
-    if (!u || !readyRef.current) return
+    const code = codeRef.current
+    if (!code || !readyRef.current) return
 
     const timers = debounceRef.current
     if (timers.has(key)) clearTimeout(timers.get(key)!)
 
     timers.set(key, setTimeout(() => {
       timers.delete(key)
-      const dbRef = ref(rtdb, `users/${u.uid}/data/${key}`)
+      const dbRef = ref(rtdb, `sync/${code}/data/${key}`)
       set(dbRef, { value, updatedAt: serverTimestamp() }).catch(console.error)
     }, 1000))
   }, [])
@@ -137,7 +169,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     unsubsRef.current.forEach(fn => fn())
     unsubsRef.current = []
 
-    if (!user) {
+    if (!syncCode) {
       setSyncStatus('idle')
       return
     }
@@ -149,7 +181,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
       for (const key of ALL_KEYS) {
         if (cancelled) return
-        const dbRef = ref(rtdb, `users/${user.uid}/data/${key}`)
+        const dbRef = ref(rtdb, `sync/${syncCode}/data/${key}`)
         const snap = await get(dbRef)
         const cloudValue = snap.exists() ? snap.val()?.value ?? null : null
         const localValue = loadLocal(key)
@@ -164,7 +196,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       readyRef.current = true
 
       for (const key of ALL_KEYS) {
-        const dbRef = ref(rtdb, `users/${user.uid}/data/${key}`)
+        const dbRef = ref(rtdb, `sync/${syncCode}/data/${key}`)
         const unsub = onValue(dbRef, (snap) => {
           if (!snap.exists()) return
           const cloudValue = snap.val()?.value
@@ -194,10 +226,10 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       unsubsRef.current.forEach(fn => fn())
       unsubsRef.current = []
     }
-  }, [user])
+  }, [syncCode])
 
   return (
-    <SyncContext.Provider value={{ syncToCloud, subscribe, syncStatus }}>
+    <SyncContext.Provider value={{ syncToCloud, subscribe, syncStatus, syncCode, connect, disconnect }}>
       {children}
     </SyncContext.Provider>
   )

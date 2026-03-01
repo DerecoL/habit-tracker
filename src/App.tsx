@@ -16,8 +16,7 @@ import { BadgeWall } from './components/BadgeWall'
 import { RewardManager } from './components/RewardManager'
 import { useTheme } from './useTheme'
 import { useI18n } from './i18n'
-import { useAuth } from './AuthContext'
-import { useSync } from './SyncContext'
+import { useSync, generateSyncCode } from './SyncContext'
 import { getOverallStreak, activeHabits } from './stats'
 import { XP_PER_BASIC, XP_PER_ADVANCED, XP_PER_SPECIAL } from './types'
 import { AuroraBackground } from './components/AuroraBackground'
@@ -49,8 +48,9 @@ export default function App() {
   const { toasts, toast } = useToast()
   const { theme, toggleTheme } = useTheme()
   const { locale, setLocale } = useI18n()
-  const { user, loading: authLoading, signIn, signOut } = useAuth()
-  const { syncStatus } = useSync()
+  const { syncStatus, syncCode, connect, disconnect } = useSync()
+  const [showSyncPanel, setShowSyncPanel] = useState(false)
+  const [syncInput, setSyncInput] = useState('')
 
   useEffect(() => { initReminder() }, [])
 
@@ -170,27 +170,64 @@ export default function App() {
       <header className="header">
         <h1 className="logo">HABIT_TRACKER<span className="logo-sub"> // 习惯打卡</span></h1>
         <div className="header-controls">
-          {!authLoading && (
-            user ? (
-              <div className="sync-indicator">
-                <span className={`sync-dot sync-${syncStatus}`} title={
-                  syncStatus === 'synced' ? '已同步' : syncStatus === 'syncing' ? '同步中...' : syncStatus === 'error' ? '同步失败' : '未连接'
-                } />
-                <img
-                  className="sync-avatar"
-                  src={user.photoURL ?? ''}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                  onClick={signOut}
-                  title={`${user.displayName ?? user.email}\n点击登出`}
-                />
+          <div className="sync-wrapper">
+            <button
+              type="button"
+              className={`header-ctrl-btn sync-btn ${syncCode ? 'sync-active' : ''}`}
+              onClick={() => setShowSyncPanel(p => !p)}
+              title={syncCode ? `同步码: ${syncCode}` : '点击同步数据'}
+            >
+              {syncCode && <span className={`sync-dot sync-${syncStatus}`} />}
+              ⇄
+            </button>
+            {showSyncPanel && (
+              <div className="sync-panel">
+                {syncCode ? (
+                  <>
+                    <div className="sync-panel-label">同步码</div>
+                    <div className="sync-panel-code">{syncCode}</div>
+                    <div className="sync-panel-status">
+                      <span className={`sync-dot sync-${syncStatus}`} />
+                      {syncStatus === 'synced' ? '已同步' : syncStatus === 'syncing' ? '同步中...' : syncStatus === 'error' ? '同步失败' : '未连接'}
+                    </div>
+                    <button
+                      type="button"
+                      className="sync-panel-btn"
+                      onClick={() => { navigator.clipboard?.writeText(syncCode); toast('已复制同步码', 'success') }}
+                    >复制同步码</button>
+                    <button
+                      type="button"
+                      className="sync-panel-btn sync-panel-btn-danger"
+                      onClick={() => { disconnect(); setShowSyncPanel(false) }}
+                    >断开同步</button>
+                  </>
+                ) : (
+                  <>
+                    <div className="sync-panel-label">输入同步码连接</div>
+                    <input
+                      className="sync-panel-input"
+                      value={syncInput}
+                      onChange={e => setSyncInput(e.target.value.toUpperCase())}
+                      placeholder="如 ABCD1234"
+                      maxLength={8}
+                    />
+                    <button
+                      type="button"
+                      className="sync-panel-btn"
+                      disabled={syncInput.trim().length < 4}
+                      onClick={() => { connect(syncInput.trim()); setSyncInput(''); setShowSyncPanel(false); toast('已连接同步', 'success') }}
+                    >开始同步</button>
+                    <div className="sync-panel-divider">或</div>
+                    <button
+                      type="button"
+                      className="sync-panel-btn sync-panel-btn-gen"
+                      onClick={() => { const code = generateSyncCode(); connect(code); setSyncInput(''); setShowSyncPanel(false); toast(`同步码: ${code}，请记住！`, 'success') }}
+                    >生成新同步码</button>
+                  </>
+                )}
               </div>
-            ) : (
-              <button type="button" className="header-ctrl-btn sync-login-btn" onClick={signIn} title="登录同步数据">
-                ⇄
-              </button>
-            )
-          )}
+            )}
+          </div>
           <button type="button" className="header-ctrl-btn" onClick={toggleTheme} title={theme === 'dark' ? '切换亮色' : '切换暗色'}>
             {theme === 'dark' ? '☀' : '☾'}
           </button>

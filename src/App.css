@@ -2370,17 +2370,26 @@
   box-shadow: var(--shadow-neon);
 }
 
-/* Sync indicator */
-.sync-indicator {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/* Sync button & panel */
+.sync-wrapper {
+  position: relative;
+}
+
+.sync-btn {
+  font-size: 1rem;
+  font-weight: 700;
+  gap: 4px;
+}
+.sync-btn.sync-active {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .sync-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
+  display: inline-block;
   flex-shrink: 0;
   transition: background 0.3s;
 }
@@ -2394,24 +2403,131 @@
   50% { opacity: 0.3; }
 }
 
-.sync-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1.5px solid var(--border);
-  cursor: pointer;
-  transition: all var(--transition);
-  object-fit: cover;
-}
-.sync-avatar:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-neon);
+.sync-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  z-index: 1000;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeScaleIn var(--transition) ease-out;
 }
 
-.sync-login-btn {
-  font-size: 1rem;
-  font-weight: 700;
+.sync-panel-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
+
+.sync-panel-code {
+  font-family: var(--font-cyber);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-align: center;
+  padding: 6px 0;
+  text-shadow: 0 0 8px var(--accent);
+}
+
+.sync-panel-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  justify-content: center;
+}
+
+.sync-panel-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-main);
+  font-family: var(--font-cyber);
+  font-size: 1rem;
+  letter-spacing: 0.15em;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color var(--transition);
+  box-sizing: border-box;
+}
+.sync-panel-input:focus {
+  border-color: var(--accent);
+}
+.sync-panel-input::placeholder {
+  letter-spacing: 0.05em;
+  font-size: 0.8rem;
+  text-transform: none;
+}
+
+.sync-panel-btn {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.sync-panel-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.sync-panel-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.sync-panel-btn-gen {
+  background: var(--accent);
+  color: var(--bg-main);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.sync-panel-btn-gen:hover {
+  opacity: 0.85;
+}
+.sync-panel-btn-danger {
+  color: #ef4444;
+  border-color: transparent;
+  background: transparent;
+  font-size: 0.75rem;
+}
+.sync-panel-btn-danger:hover {
+  border-color: #ef4444;
+}
+
+.sync-panel-divider {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  position: relative;
+}
+.sync-panel-divider::before,
+.sync-panel-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 35%;
+  height: 1px;
+  background: var(--border);
+}
+.sync-panel-divider::before { left: 0; }
+.sync-panel-divider::after { right: 0; }
 
 /* ═══════════════════════════════════
    Sort Buttons
