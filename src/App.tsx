@@ -40,7 +40,11 @@ const TAB_INDEX: Record<Tab, number> = { overview: 0, daily: 1, habits: 2, trend
 const TAB_IDS: Tab[] = ['overview', 'daily', 'habits', 'trend']
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('overview')
+  const [tab, setTab] = useState<Tab>(() => {
+    const p = new URLSearchParams(window.location.search)
+    const t = p.get('tab')
+    return (t && ['overview', 'daily', 'habits', 'trend'].includes(t)) ? t as Tab : 'overview'
+  })
   const [tabKey, setTabKey] = useState(0)
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right')
   const [showOnboarding, setShowOnboarding] = useState(shouldShowOnboarding)

@@ -93,7 +93,7 @@ export function DataManager({ onImported, habits, checkIns }: DataManagerProps) 
             const nameMap = new Map(habits.map(h => [h.id, h.name]))
             const rows = [['日期', '习惯', '类型', '状态', '备注'].join(',')]
             for (const c of checkIns) {
-              rows.push([c.date, nameMap.get(c.habitId) ?? c.habitId, habits.find(h => h.id === c.habitId)?.type ?? '', c.status ?? 'done', `"${(c.note ?? '').replace(/"/g, '""')}"`].join(','))
+              rows.push([c.date, nameMap.get(c.habitId) ?? c.habitId, habits.find(h => h.id === c.habitId)?.type ?? '', c.status ?? 'done', `"${(c.note ?? '').replace(/\r?\n/g, ' ').replace(/"/g, '""')}"`].join(','))
             }
             const bom = '\uFEFF'
             const blob = new Blob([bom + rows.join('\n')], { type: 'text/csv;charset=utf-8' })

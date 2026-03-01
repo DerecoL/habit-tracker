@@ -1,8 +1,9 @@
 {
   "name": "习惯追踪器",
   "short_name": "习惯追踪器",
-  "description": "每日习惯打卡、心情与备忘记录",
-  "start_url": "/",
+  "description": "每日习惯打卡、心情与备忘记录，赛博朋克风格习惯追踪器",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#06060f",
   "theme_color": "#00f0ff",
@@ -10,7 +11,7 @@
   "lang": "zh-CN",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "./favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
@@ -20,13 +21,13 @@
     {
       "name": "今日打卡",
       "short_name": "打卡",
-      "url": "/?tab=daily",
+      "url": "./?tab=daily",
       "description": "快速进入打卡页面"
     },
     {
       "name": "查看总览",
       "short_name": "总览",
-      "url": "/?tab=overview",
+      "url": "./?tab=overview",
       "description": "查看习惯总览"
     }
   ]

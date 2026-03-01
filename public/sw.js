@@ -1,15 +1,7 @@
-const CACHE_NAME = 'habit-tracker-v1'
-
-const PRECACHE_URLS = [
-  '/',
-  '/favicon.svg',
-  '/manifest.json',
-]
+const CACHE_NAME = 'habit-tracker-v2'
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE_URLS))
-  )
+  event.waitUntil(caches.open(CACHE_NAME))
   self.skipWaiting()
 })
 
@@ -24,11 +16,16 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return
+  const url = new URL(event.request.url)
+  if (url.origin !== location.origin) return
+
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        const clone = response.clone()
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone))
+        if (response.ok) {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone))
+        }
         return response
       })
       .catch(() => caches.match(event.request))
