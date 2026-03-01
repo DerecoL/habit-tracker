@@ -181,6 +181,8 @@ export default function App() {
               ⇄
             </button>
             {showSyncPanel && (
+              <>
+              <div className="sync-panel-backdrop" onClick={() => setShowSyncPanel(false)} />
               <div className="sync-panel">
                 {syncCode ? (
                   <>
@@ -226,6 +228,7 @@ export default function App() {
                   </>
                 )}
               </div>
+              </>
             )}
           </div>
           <button type="button" className="header-ctrl-btn" onClick={toggleTheme} title={theme === 'dark' ? '切换亮色' : '切换暗色'}>

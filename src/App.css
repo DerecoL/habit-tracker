@@ -2421,6 +2421,24 @@
   animation: fadeScaleIn var(--transition) ease-out;
 }
 
+@media (max-width: 768px) {
+  .sync-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+    width: calc(100vw - 48px);
+    max-width: 280px;
+  }
+  .sync-panel-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+}
+
 .sync-panel-label {
   font-size: 0.75rem;
   color: var(--text-muted);
