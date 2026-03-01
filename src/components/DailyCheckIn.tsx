@@ -75,6 +75,7 @@ interface DailyCheckInProps {
   setMemo: (date: string, content: string) => void
   getMood: (date: string) => number
   setMood: (date: string, value: number) => void
+  onGoManage?: () => void
 }
 
 export function DailyCheckIn({
@@ -89,6 +90,7 @@ export function DailyCheckIn({
   setMemo,
   getMood,
   setMood,
+  onGoManage,
 }: DailyCheckInProps) {
   const today = todayStr()
   const todayDate = new Date()
@@ -136,19 +138,22 @@ export function DailyCheckIn({
     <section className="panel daily">
       <h2 className="panel-title">DAILY_CHECK // 今日打卡</h2>
       <p className="panel-desc panel-desc-date">{formatTodayWithWeekday(todayDate)}</p>
-      <p className="panel-desc">
-        {daily.length > 0 && (
-          <>基础+进阶：今天已完成 {dayStat.completed}/{dayStat.total} 项 · {dayStat.percent}%</>
-        )}
-        {daily.length > 0 && special.length > 0 && ' · '}
-        {special.length > 0 && (
-          <>特殊习惯：今日共执行 {special.reduce((s, h) => s + getSpecialCount(h.id, today), 0)} 次</>
-        )}
-        {habits.length === 0 && '请先在「习惯管理」中添加习惯项'}
-      </p>
-
-      {habits.length === 0 && (
-        <p className="empty-hint">请先在「习惯管理」中添加习惯项</p>
+      {habits.length > 0 ? (
+        <p className="panel-desc">
+          {daily.length > 0 && (
+            <>基础+进阶：今天已完成 {dayStat.completed}/{dayStat.total} 项 · {dayStat.percent}%</>
+          )}
+          {daily.length > 0 && special.length > 0 && ' · '}
+          {special.length > 0 && (
+            <>特殊习惯：今日共执行 {special.reduce((s, h) => s + getSpecialCount(h.id, today), 0)} 次</>
+          )}
+        </p>
+      ) : (
+        <div className="empty-state">
+          <span className="empty-state-icon">▣</span>
+          <p className="empty-state-text">还没有添加任何习惯，无法打卡</p>
+          {onGoManage && <button type="button" className="empty-state-btn" onClick={onGoManage}>⚙ 去添加习惯</button>}
+        </div>
       )}
 
       {daily.length > 0 && (
@@ -261,7 +266,7 @@ export function DailyCheckIn({
 
       <div className="review-day-block">
             <h3 className="habit-block-title">日期回顾</h3>
-            <p className="memo-hint">选择日期查看当天打卡与备忘，也可补写或修改该天的备忘</p>
+            <p className="memo-hint">选择日期查看并补打该天的习惯，也可修改心情和备忘</p>
             <div className="review-day-picker">
               <label htmlFor="review-date">查看日期</label>
               <input
@@ -269,6 +274,7 @@ export function DailyCheckIn({
                 type="date"
                 className="review-date-input"
                 value={reviewDate}
+                max={today}
                 onChange={e => setReviewDate(e.target.value)}
               />
             </div>
@@ -277,15 +283,55 @@ export function DailyCheckIn({
               const dayLabel = formatTodayWithWeekday(d)
               const thatDayStat = getDayStats(habits, checkIns, reviewDate)
               const specialThatDay = special.reduce((s, h) => s + getSpecialCount(h.id, reviewDate), 0)
+              const isToday = reviewDate === today
               return (
                 <div className="review-day-card">
-                  <p className="review-day-date">{dayLabel}</p>
+                  <p className="review-day-date">{dayLabel}{isToday && <span className="review-today-badge">今天</span>}</p>
                   {habits.length > 0 && (
                     <p className="review-day-summary">
                       {daily.length > 0 && <>基础+进阶：完成 {thatDayStat.completed}/{thatDayStat.total} 项</>}
                       {daily.length > 0 && special.length > 0 && ' · '}
                       {special.length > 0 && <>特殊习惯：共 {specialThatDay} 次</>}
                     </p>
+                  )}
+                  {daily.length > 0 && (
+                    <div className="review-checkin-block">
+                      <label>习惯打卡{!isToday && '（点击可补打/取消）'}</label>
+                      <div className="review-checkin-list">
+                        {daily.map(h => (
+                          <button
+                            key={h.id}
+                            type="button"
+                            className={`review-checkin-chip ${isCheckedIn(h.id, reviewDate) ? 'done' : ''}`}
+                            style={{ '--habit-color': h.color } as React.CSSProperties}
+                            onClick={() => toggleCheckIn(h.id, reviewDate)}
+                          >
+                            <span className="review-checkin-dot" />
+                            <span>{h.name}</span>
+                            {isCheckedIn(h.id, reviewDate) && <span className="review-checkin-mark">DONE</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {special.length > 0 && (
+                    <div className="review-checkin-block">
+                      <label>特殊习惯</label>
+                      <div className="review-special-list">
+                        {special.map(h => {
+                          const cnt = getSpecialCount(h.id, reviewDate)
+                          return (
+                            <div key={h.id} className="review-special-row">
+                              <span className="review-checkin-dot" style={{ background: h.color }} />
+                              <span style={{ color: h.color }}>{h.name}</span>
+                              <span className="review-special-cnt">{cnt} 次</span>
+                              <button type="button" className="btn btn-sm btn-primary" onClick={() => addSpecialCheckIn(h.id, reviewDate)}>＋</button>
+                              {cnt > 0 && <button type="button" className="btn btn-sm btn-ghost" onClick={() => removeOneSpecialCheckIn(h.id, reviewDate)}>－</button>}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
                   )}
                   <div className="review-day-mood">
                     <label>当天开心程度</label>

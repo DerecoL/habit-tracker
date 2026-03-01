@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useHabits } from './useHabits'
 import { useMemos } from './useMemos'
 import { useDailyMood } from './useDailyMood'
@@ -8,6 +8,7 @@ import { HabitManage } from './components/HabitManage'
 import { TrendChart } from './components/TrendChart'
 import { DataManager } from './components/DataManager'
 import { useToast, ToastContainer } from './components/Toast'
+import { Celebration } from './components/Celebration'
 import './App.css'
 
 type Tab = 'overview' | 'daily' | 'habits' | 'trend'
@@ -19,12 +20,19 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'trend', label: '趋势', icon: '◆' },
 ]
 
+const TAB_INDEX: Record<Tab, number> = { overview: 0, daily: 1, habits: 2, trend: 3 }
+
 export default function App() {
   const [tab, setTab] = useState<Tab>('overview')
   const [tabKey, setTabKey] = useState(0)
+  const [slideDir, setSlideDir] = useState<'left' | 'right'>('right')
+  const prevTabRef = useRef(0)
   const { toasts, toast } = useToast()
 
   const switchTab = useCallback((t: Tab) => {
+    const newIdx = TAB_INDEX[t]
+    setSlideDir(newIdx >= prevTabRef.current ? 'right' : 'left')
+    prevTabRef.current = newIdx
     setTab(t)
     setTabKey(k => k + 1)
   }, [])
@@ -89,8 +97,8 @@ export default function App() {
         </nav>
       </header>
 
-      <main className="main" key={tabKey}>
-        {tab === 'overview' && <Dashboard habits={habits} checkIns={checkIns} getMood={getMood} />}
+      <main className={`main main-slide-${slideDir}`} key={tabKey}>
+        {tab === 'overview' && <Dashboard habits={habits} checkIns={checkIns} getMood={getMood} isCheckedIn={isCheckedIn} toggleCheckIn={toggleCheckIn} onGoManage={() => switchTab('habits')} />}
         {tab === 'daily' && (
           <DailyCheckIn
             habits={habits}
@@ -104,6 +112,7 @@ export default function App() {
             setMemo={setMemo}
             getMood={getMood}
             setMood={setMood}
+            onGoManage={() => switchTab('habits')}
           />
         )}
         {tab === 'habits' && (
@@ -134,6 +143,7 @@ export default function App() {
         ))}
       </nav>
 
+      <Celebration habits={habits} checkIns={checkIns} />
       <ToastContainer toasts={toasts} />
     </div>
   )

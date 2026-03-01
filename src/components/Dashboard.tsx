@@ -19,11 +19,15 @@ import { dateRange, getWeekRange, getMonthRange, getYearRange } from '../dateUti
 import { formatNaturalShort, formatWeekday, formatDateRange } from '../dateUtils'
 import type { Habit, CheckIn } from '../types'
 import { MoodTrendChart } from './MoodTrendChart'
+import { HeatMap } from './HeatMap'
 
 interface DashboardProps {
   habits: Habit[]
   checkIns: CheckIn[]
   getMood: (date: string) => number
+  isCheckedIn: (habitId: string, date: string) => boolean
+  toggleCheckIn: (habitId: string, date: string) => void
+  onGoManage?: () => void
 }
 
 function TypeBar({ label, stat, variant }: {
@@ -49,7 +53,7 @@ function TypeBar({ label, stat, variant }: {
   )
 }
 
-export function Dashboard({ habits, checkIns, getMood }: DashboardProps) {
+export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckIn, onGoManage }: DashboardProps) {
   const today = todayStr()
   const todayDate = new Date()
 
@@ -177,6 +181,25 @@ export function Dashboard({ habits, checkIns, getMood }: DashboardProps) {
                 <TypeBar label="基础" stat={dayBasic} variant="basic" />
                 <TypeBar label="进阶" stat={dayAdv} variant="advanced" />
               </div>
+              {dailyCount > 0 && (
+                <div className="quick-checkin-bar">
+                  {dailyHabits(habits).map(h => (
+                    <button
+                      key={h.id}
+                      type="button"
+                      className={`quick-checkin-chip ${isCheckedIn(h.id, today) ? 'done' : ''}`}
+                      style={{ '--habit-color': h.color } as React.CSSProperties}
+                      onClick={() => toggleCheckIn(h.id, today)}
+                    >
+                      <span className="qc-dot" />
+                      <span className="qc-name">{h.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {day.total > 0 && day.completed === day.total && (
+                <div className="dcard-allclear">ALL CLEAR // 今日全勤</div>
+              )}
             </div>
 
             {/* 本周 */}
@@ -253,10 +276,16 @@ export function Dashboard({ habits, checkIns, getMood }: DashboardProps) {
         </>
       )}
 
+      <HeatMap habits={habits} checkIns={checkIns} />
+
       <MoodTrendChart getMood={getMood} days={14} />
 
       {habits.length === 0 && (
-        <p className="empty-hint">请先在「习惯管理」中添加习惯项</p>
+        <div className="empty-state">
+          <span className="empty-state-icon">◈</span>
+          <p className="empty-state-text">还没有添加任何习惯，快去设定你的目标吧</p>
+          {onGoManage && <button type="button" className="empty-state-btn" onClick={onGoManage}>⚙ 去添加习惯</button>}
+        </div>
       )}
     </section>
   )
