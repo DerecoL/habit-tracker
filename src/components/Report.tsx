@@ -90,7 +90,7 @@ export function Report({ habits, checkIns, getMood }: ReportProps) {
       <div className="report-card" ref={cardRef}>
         <div className="report-header">
           <h4>{data.label} 习惯报告</h4>
-          <span className="report-sub">HABIT_TRACKER</span>
+          <span className="report-sub">习惯追踪器</span>
         </div>
 
         <div className="report-stats-grid">

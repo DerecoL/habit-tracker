@@ -52,8 +52,8 @@ interface Messages {
 }
 
 const zh: Messages = {
-  appTitle: 'HABIT_TRACKER',
-  appSub: '习惯打卡',
+  appTitle: '习惯追踪器',
+  appSub: 'TRACKER',
   tabOverview: '总览',
   tabDaily: '打卡',
   tabManage: '管理',
@@ -99,7 +99,7 @@ const zh: Messages = {
 }
 
 const en: Messages = {
-  appTitle: 'HABIT_TRACKER',
+  appTitle: '习惯追踪器',
   appSub: 'Habit Check-in',
   tabOverview: 'Overview',
   tabDaily: 'Daily',

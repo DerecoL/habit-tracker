@@ -5,7 +5,7 @@ const STORAGE_KEY = 'habit-tracker-onboarded'
 const STEPS = [
   {
     icon: '◈',
-    title: '欢迎使用 HABIT_TRACKER',
+    title: '欢迎使用 习惯追踪器',
     desc: '这是一个赛博朋克风格的习惯打卡系统，帮助你追踪日常习惯并可视化你的坚持。',
   },
   {

@@ -178,7 +178,7 @@ export default function App() {
     <div className="app">
       {theme === 'dark' && <AuroraBackground />}
       <header className="header">
-        <h1 className="logo">HABIT_TRACKER<span className="logo-sub"> // 习惯打卡</span></h1>
+        <h1 className="logo">习惯追踪器<span className="logo-sub"> // TRACKER</span></h1>
         <div className="header-controls">
           <button
             type="button"

@@ -35,7 +35,7 @@ function scheduleNextReminder(cfg: ReminderConfig) {
   }
   const delay = target.getTime() - now.getTime()
   reminderTimer = setTimeout(() => {
-    new Notification('HABIT_TRACKER 打卡提醒', {
+    new Notification('习惯追踪器 打卡提醒', {
       body: '今天的习惯完成了吗？快去打卡吧！',
       icon: '/favicon.ico',
     })

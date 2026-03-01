@@ -1,6 +1,6 @@
 {
-  "name": "生活习惯打卡",
-  "short_name": "习惯打卡",
+  "name": "习惯追踪器",
+  "short_name": "习惯追踪器",
   "description": "每日习惯打卡、心情与备忘记录",
   "start_url": "/",
   "display": "standalone",
