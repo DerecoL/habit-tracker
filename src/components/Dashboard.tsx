@@ -28,6 +28,7 @@ import { WeeklySummary } from './WeeklySummary'
 import type { FreezeState } from '../types'
 import { getLevelInfo } from '../types'
 import { ProgressRing } from './ProgressRing'
+import { GlowCard } from './GlowCard'
 
 interface DashboardProps {
   habits: Habit[]
@@ -148,17 +149,17 @@ export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckI
       {dailyCount > 0 && (
         <>
           {/* ── Hero: Today's Progress Ring ── */}
-          <div className="dashboard-hero">
+          <GlowCard className="dashboard-hero">
             <ProgressRing
               percent={day.percent}
-              size={130}
-              stroke={6}
+              size={140}
+              stroke={8}
               label={`${day.percent}%`}
               sublabel="今日完成率"
             />
             <div className="dashboard-hero-info">
               <div className="hero-stat">
-                <span className="hero-stat-value">{day.completed}</span>
+                <span className="hero-stat-value gradient-text">{day.completed}</span>
                 <span className="hero-stat-label">已完成</span>
               </div>
               <div className="hero-stat-divider" />
@@ -168,17 +169,17 @@ export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckI
               </div>
               <div className="hero-stat-divider" />
               <div className="hero-stat">
-                <span className="hero-stat-value">{getOverallStreak(habits, checkIns)}</span>
+                <span className="hero-stat-value gradient-text">{getOverallStreak(habits, checkIns)}</span>
                 <span className="hero-stat-label">连续天数</span>
               </div>
             </div>
-          </div>
+          </GlowCard>
 
           {/* ── Streak Banner ── */}
-          <div className="streak-banner">
+          <GlowCard className="streak-banner" glowColor="rgba(255, 45, 149, 0.15)">
             <div className="streak-item streak-item-main">
               <span className="streak-flame">&#x1F525;</span>
-              <span className="streak-value">{getOverallStreak(habits, checkIns)}</span>
+              <span className="streak-value gradient-text">{getOverallStreak(habits, checkIns)}</span>
               <span className="streak-label">天连续全勤</span>
             </div>
             <div className="streak-typed-groups">
@@ -209,7 +210,7 @@ export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckI
                 </div>
               )}
             </div>
-          </div>
+          </GlowCard>
 
           {/* ── Period Cards ── */}
           <h3 className="dashboard-section-title">周期完成率</h3>
