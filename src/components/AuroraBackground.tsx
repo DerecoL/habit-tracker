@@ -92,5 +92,5 @@ export function AuroraBackground() {
     }
   }, [])
 
-  return <canvas ref={canvasRef} className="aurora-canvas" />
+  return <canvas ref={canvasRef} className="aurora-canvas" aria-hidden="true" />
 }

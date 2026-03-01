@@ -203,7 +203,7 @@ export default function App() {
 
       <main className={`main main-slide-${slideDir}`} key={tabKey}>
         <Suspense fallback={skeletonFallback}>
-          {tab === 'overview' && <Dashboard habits={habits} checkIns={checkIns} getMood={getMood} isCheckedIn={isCheckedIn} toggleCheckIn={toggleCheckIn} onGoManage={() => switchTab('habits')} xp={xp.total} unlockedBadgeIds={unlockedIds} freezes={freezes} />}
+          {tab === 'overview' && <Dashboard habits={habits} checkIns={checkIns} getMood={getMood} isCheckedIn={isCheckedIn} toggleCheckIn={toggleCheckIn} onGoManage={() => switchTab('habits')} xp={xp.total} freezes={freezes} />}
           {tab === 'daily' && (
             <DailyCheckIn
               habits={habits}
@@ -261,7 +261,7 @@ export default function App() {
                 <button
                   type="button"
                   className="sync-panel-btn"
-                  onClick={() => { navigator.clipboard?.writeText(syncCode); toast('已复制同步码', 'success') }}
+                      onClick={() => { navigator.clipboard?.writeText(syncCode).then(() => toast('已复制同步码', 'success')).catch(() => toast('复制失败，请手动记录', 'warning')) }}
                 >复制同步码</button>
                 <button
                   type="button"
@@ -282,9 +282,15 @@ export default function App() {
                 <button
                   type="button"
                   className="sync-panel-btn"
-                  disabled={syncInput.trim().length < 4}
-                  onClick={() => { connect(syncInput.trim()); setSyncInput(''); setShowSyncPanel(false); toast('已连接同步', 'success') }}
-                >开始同步</button>
+                      disabled={syncInput.trim().length < 4}
+                      onClick={() => {
+                        if (connect(syncInput.trim())) {
+                          setSyncInput(''); setShowSyncPanel(false); toast('已连接同步', 'success')
+                        } else {
+                          toast('同步码至少4位字母或数字', 'warning')
+                        }
+                      }}
+                    >开始同步</button>
                 <div className="sync-panel-divider">或</div>
                 <button
                   type="button"

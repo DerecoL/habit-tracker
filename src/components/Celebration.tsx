@@ -65,9 +65,9 @@ export function Celebration({ habits, checkIns, milestone }: CelebrationProps) {
     }
   }, [milestone, isAllClear, today])
 
-  if (!show || !display) return null
+  const particles = useMemo(() => makeParticles(), [show])
 
-  const particles = makeParticles()
+  if (!show || !display) return null
 
   return (
     <div className="celebration-overlay">

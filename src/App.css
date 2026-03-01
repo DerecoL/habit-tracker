@@ -1607,7 +1607,7 @@
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 200;
+  z-index: 9999;
   display: flex;
   flex-direction: column-reverse;
   gap: 8px;
@@ -1940,40 +1940,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.review-checkin-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text);
-  font-size: 0.82rem;
-  cursor: pointer;
-  transition: all var(--transition);
-}
-
-.review-checkin-chip .review-checkin-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--habit-color);
-  opacity: 0.5;
-  transition: opacity var(--transition);
-}
-
-.review-checkin-chip.done {
-  border-color: var(--habit-color);
-  background: color-mix(in srgb, var(--habit-color) 12%, var(--bg-card));
-  box-shadow: 0 0 8px color-mix(in srgb, var(--habit-color) 25%, transparent);
-}
-
-.review-checkin-chip.done .review-checkin-dot {
-  opacity: 1;
-  box-shadow: 0 0 6px var(--habit-color);
 }
 
 .review-checkin-mark {
@@ -2371,10 +2337,6 @@
 }
 
 /* Sync button & panel */
-.sync-wrapper {
-  position: relative;
-}
-
 .sync-btn {
   font-size: 1rem;
   font-weight: 700;
@@ -2460,10 +2422,10 @@
 .sync-panel-input {
   width: 100%;
   padding: 8px 10px;
-  background: var(--bg-main);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  color: var(--text-main);
+  color: var(--text);
   font-family: var(--font-cyber);
   font-size: 1rem;
   letter-spacing: 0.15em;
@@ -2488,7 +2450,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-card);
-  color: var(--text-main);
+  color: var(--text);
   font-size: 0.82rem;
   cursor: pointer;
   transition: all var(--transition);
@@ -2503,7 +2465,7 @@
 }
 .sync-panel-btn-gen {
   background: var(--accent);
-  color: var(--bg-main);
+  color: var(--bg);
   border-color: var(--accent);
   font-weight: 600;
 }
@@ -2537,6 +2499,17 @@
 }
 .sync-panel-divider::before { left: 0; }
 .sync-panel-divider::after { right: 0; }
+
+[data-theme="light"] .sync-panel {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+[data-theme="light"] .sync-panel-backdrop {
+  background: rgba(0, 0, 0, 0.25);
+}
+[data-theme="light"] .sync-panel-code {
+  text-shadow: none;
+}
 
 /* ═══════════════════════════════════
    Sort Buttons

@@ -14,6 +14,7 @@ export function GlowCard({ children, className = '', style, glowColor }: GlowCar
     const el = cardRef.current
     if (!el) return
     const rect = el.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) return
     const x = e.clientX - rect.left
     const y = e.clientY - rect.top
     const centerX = rect.width / 2

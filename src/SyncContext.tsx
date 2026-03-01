@@ -100,7 +100,7 @@ interface SyncCtx {
   subscribe: (key: SyncKey, setter: (value: any) => void) => () => void
   syncStatus: 'idle' | 'syncing' | 'synced' | 'error'
   syncCode: string | null
-  connect: (code: string) => void
+  connect: (code: string) => boolean
   disconnect: () => void
 }
 
@@ -109,7 +109,7 @@ const SyncContext = createContext<SyncCtx>({
   subscribe: () => () => {},
   syncStatus: 'idle',
   syncCode: null,
-  connect: () => {},
+  connect: () => false,
   disconnect: () => {},
 })
 
@@ -130,11 +130,12 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { codeRef.current = syncCode }, [syncCode])
 
-  const connect = useCallback((code: string) => {
-    const trimmed = code.trim().toUpperCase()
-    if (!trimmed) return
+  const connect = useCallback((code: string): boolean => {
+    const trimmed = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '')
+    if (trimmed.length < 4) return false
     localStorage.setItem(SYNC_CODE_STORAGE, trimmed)
     setSyncCode(trimmed)
+    return true
   }, [])
 
   const disconnect = useCallback(() => {

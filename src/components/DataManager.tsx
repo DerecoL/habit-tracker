@@ -35,6 +35,10 @@ export function DataManager({ onImported, habits, checkIns }: DataManagerProps) 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    if (!window.confirm('导入将覆盖当前所有数据（包括已同步的数据），确定继续吗？')) {
+      if (fileRef.current) fileRef.current.value = ''
+      return
+    }
     setImportStatus('loading')
     setStatusMsg('正在导入…')
     const reader = new FileReader()

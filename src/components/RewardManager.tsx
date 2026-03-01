@@ -58,6 +58,9 @@ export function RewardManager({
         </button>
       </form>
       <div className="reward-list">
+        {rewards.length === 0 && (
+          <p className="memo-hint" style={{ textAlign: 'center', padding: '12px 0' }}>暂无奖励，添加一个吧</p>
+        )}
         {rewards.map((r) => (
           <div key={r.id} className="reward-item">
             <div className="reward-info">
@@ -69,6 +72,7 @@ export function RewardManager({
                 type="button"
                 className="reward-redeem-btn"
                 disabled={xpBalance < r.cost || r.redeemed}
+                title={r.redeemed ? '已兑换' : xpBalance < r.cost ? `需要 ${r.cost} XP（当前 ${xpBalance}）` : '兑换此奖励'}
                 onClick={() => redeemReward(r.id)}
               >
                 {r.redeemed ? '已兑换' : '兑换'}

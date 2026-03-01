@@ -38,7 +38,6 @@ interface DashboardProps {
   toggleCheckIn: (habitId: string, date: string) => void
   onGoManage?: () => void
   xp?: number
-  unlockedBadgeIds?: string[]
   freezes?: FreezeState
 }
 
@@ -65,7 +64,9 @@ function TypeBar({ label, stat, variant }: {
   )
 }
 
-export function Dashboard({ habits, checkIns, getMood, isCheckedIn, toggleCheckIn, onGoManage, xp = 0, freezes }: DashboardProps) {
+export function Dashboard({ habits: rawHabits, checkIns: rawCheckIns, getMood, isCheckedIn, toggleCheckIn, onGoManage, xp = 0, freezes }: DashboardProps) {
+  const habits = rawHabits ?? []
+  const checkIns = rawCheckIns ?? []
   const today = todayStr()
   const todayDate = new Date()
 

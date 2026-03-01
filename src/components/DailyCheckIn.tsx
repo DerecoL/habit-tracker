@@ -274,7 +274,7 @@ export function DailyCheckIn({
       <div className="review-day-block">
         <h3 className="habit-block-title">日期回顾</h3>
         <div className="review-day-picker">
-          <input id="review-date" type="date" className="review-date-input" value={reviewDate} max={today} onChange={e => setReviewDate(e.target.value)} />
+          <input id="review-date" type="date" className="review-date-input" value={reviewDate} min={(() => { const d = new Date(); d.setFullYear(d.getFullYear() - 1); return d.toISOString().slice(0, 10) })()} max={today} onChange={e => setReviewDate(e.target.value)} />
         </div>
         {reviewDate && (() => {
           const d = parseDate(reviewDate)

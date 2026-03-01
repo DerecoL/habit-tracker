@@ -4,7 +4,7 @@ interface BadgeWallProps {
   unlockedIds: string[]
 }
 
-export function BadgeWall({ unlockedIds }: BadgeWallProps) {
+export function BadgeWall({ unlockedIds = [] }: BadgeWallProps) {
   return (
     <section className="badge-wall">
       <h3>成就徽章</h3>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { dateRange, todayStr, parseDate, formatNaturalShort, formatWeekday } from '../dateUtils'
 import { getDayStats, dailyHabits } from '../stats'
 import type { Habit, CheckIn } from '../types'
@@ -111,6 +111,11 @@ export function HeatMap({ habits, checkIns }: HeatMapProps) {
                     setTooltip({ x: rect.left + rect.width / 2, y: rect.top - 4, text: tooltipText })
                   }}
                   onMouseLeave={() => setTooltip(null)}
+                  onTouchStart={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    setTooltip({ x: rect.left + rect.width / 2, y: rect.top - 4, text: tooltipText })
+                  }}
+                  onTouchEnd={() => setTimeout(() => setTooltip(null), 1500)}
                 />
               )
             })}
@@ -123,8 +128,8 @@ export function HeatMap({ habits, checkIns }: HeatMapProps) {
           className="heatmap-tooltip"
           style={{
             position: 'fixed',
-            left: tooltip.x,
-            top: tooltip.y,
+            left: Math.max(80, Math.min(tooltip.x, window.innerWidth - 80)),
+            top: Math.max(40, tooltip.y),
             transform: 'translate(-50%, -100%)',
             pointerEvents: 'none',
           }}

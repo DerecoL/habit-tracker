@@ -50,7 +50,7 @@ const TYPE_CONFIG: Record<ToastType, { icon: string; className: string }> = {
 export function ToastContainer({ toasts }: { toasts: ToastItem[] }) {
   if (toasts.length === 0) return null
   return (
-    <div className="toast-container">
+    <div className="toast-container" role="status" aria-live="polite">
       {toasts.map(t => {
         const cfg = TYPE_CONFIG[t.type]
         return (
