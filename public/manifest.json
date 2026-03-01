@@ -11,10 +11,10 @@
   "lang": "zh-CN",
   "icons": [
     {
-      "src": "./favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "./habit-tracker-icon.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
